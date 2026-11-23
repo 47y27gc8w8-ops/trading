@@ -4,6 +4,7 @@
 #   scripts/evolve.sh <strategy> --generations 20          # random parameter mutations
 #   scripts/evolve.sh <strategy> --set fast=40 --note "why" # one hand-picked change
 #   scripts/evolve.sh <strategy> --code-change --note "why" # after editing strategy.py
+#   scripts/evolve.sh <strategy> --code-change --tune 40 --only a,b --note "why"  # tune new params first
 #
 # For --code-change: if the edit is worse than the champion, the edit is saved
 # to strategies/<name>/rejected/<id>.patch, strategy.py + config.json are

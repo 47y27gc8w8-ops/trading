@@ -181,6 +181,9 @@ def main() -> int:
     ap.add_argument("--generations", type=int, default=0)
     ap.add_argument("--set", nargs="*", default=[], help="hand-picked param change, e.g. fast=40")
     ap.add_argument("--code-change", action="store_true", help="judge the current strategy.py against the champion")
+    ap.add_argument("--tune", type=int, default=0,
+                    help="with --code-change: hill-climb the new code's params for N steps before giving up")
+    ap.add_argument("--only", default="", help="comma-separated params that mutations may change")
     ap.add_argument("--note", default="")
     ap.add_argument("--seed", type=int)
     a = ap.parse_args()
@@ -190,6 +193,7 @@ def main() -> int:
     log = read_log(d)
     tested = {json.dumps(r["params"], sort_keys=True) + r["code"] for r in log}
     rng = random.Random(a.seed)
+    space = {k: v for k, v in cfg["space"].items() if not a.only or k in a.only.split(",")}
     kept, ran, last_id = [], 0, None
 
     def save():
@@ -203,13 +207,33 @@ def main() -> int:
         a.note = ""
 
     if a.code_change:
-        rec = record(d, cfg, log, "code", cfg["params"], "strategy.py edited", evaluate(mod, cfg, cfg["params"]), a.note)
-        ran += 1; last_id = rec["id"]; save()
-        if not rec["accepted"]:
-            print(f"EXPERIMENT_ID: {rec['id']}\nREJECTED_CODE_CHANGE")
-            print(f"COMMIT_MSG: evolve({a.strategy}): code change rejected (#{rec['id']}) {a.note}")
+        ev = evaluate(mod, cfg, cfg["params"])
+        rec = record(d, cfg, log, "code", cfg["params"], "strategy.py edited", ev, a.note)
+        ran += 1; last_id = rec["id"]; kept += [rec] if rec["accepted"] else []; save()
+        # Tuning: hill-climb the NEW code's params from its own best point, so a
+        # good idea with bad default params is not thrown away. Every step must
+        # still beat the old champion by min_improvement to be kept.
+        best_p, best_fit = rec["params"], ev["fitness"]
+        tested.add(json.dumps(best_p, sort_keys=True) + code_hash(d))
+        for _ in range(a.tune):
+            for _try in range(200):
+                p, change = mutate(best_p, space, rng)
+                key = json.dumps(p, sort_keys=True) + code_hash(d)
+                if change and valid(p) and key not in tested:
+                    break
+            else:
+                print("tuning space exhausted"); break
+            tested.add(key)
+            ev = evaluate(mod, cfg, p)
+            rec = record(d, cfg, log, "tune", p, change, ev, a.note)
+            ran += 1; last_id = rec["id"]; kept += [rec] if rec["accepted"] else []; save()
+            if ev["fitness"] > best_fit:
+                best_p, best_fit = p, ev["fitness"]
+        if not kept:
+            print(f"EXPERIMENT_ID: {last_id}\nREJECTED_CODE_CHANGE")
+            print(f"COMMIT_MSG: evolve({a.strategy}): code change rejected after {ran} experiments "
+                  f"(best tuned IS fitness {best_fit:.3f} vs champion {cfg['champion']['fitness']:.3f}) {a.note}")
             return 3
-        kept.append(rec)
 
     if a.set:
         p = parse_set(a.set, cfg["params"])
@@ -221,7 +245,7 @@ def main() -> int:
 
     for _ in range(a.generations):
         for _try in range(200):
-            p, change = mutate(cfg["params"], cfg["space"], rng)
+            p, change = mutate(cfg["params"], space, rng)
             key = json.dumps(p, sort_keys=True) + code_hash(d)
             if change and valid(p) and key not in tested:
                 break
