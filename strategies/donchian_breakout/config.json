@@ -24,8 +24,8 @@
   "fitness": "sharpe",
   "min_improvement": 0.02,
   "params": {
-    "entry_n": 20,
-    "exit_n": 10
+    "entry_n": 25,
+    "exit_n": 7
   },
   "space": {
     "entry_n": {
@@ -37,6 +37,63 @@
       "min": 3,
       "max": 100,
       "step": 3
+    }
+  },
+  "champion": {
+    "id": 8,
+    "code": "62c1a3fd80",
+    "fitness": 1.6767,
+    "is": {
+      "start": "2017-08-17",
+      "end": "2023-12-31",
+      "days": 2328,
+      "cagr": 0.7913,
+      "vol": 0.394,
+      "sharpe": 1.6767,
+      "sortino": 1.8367,
+      "max_dd": -0.3812,
+      "calmar": 2.0759,
+      "total_return": 40.1827,
+      "avg_exposure": 0.3017,
+      "turnover_per_year": 8.7744
+    },
+    "oos": {
+      "start": "2024-01-01",
+      "end": "2026-11-22",
+      "days": 1057,
+      "cagr": 0.2416,
+      "vol": 0.2762,
+      "sharpe": 0.9215,
+      "sortino": 1.0835,
+      "max_dd": -0.3188,
+      "calmar": 0.7577,
+      "total_return": 0.8713,
+      "avg_exposure": 0.2827,
+      "turnover_per_year": 10.3509
+    },
+    "bench_is": {
+      "start": "2017-08-17",
+      "end": "2023-12-31",
+      "days": 2328,
+      "cagr": 0.6859,
+      "vol": 0.8763,
+      "sharpe": 1.0432,
+      "sortino": 1.3615,
+      "max_dd": -0.8629,
+      "calmar": 0.7948,
+      "total_return": 26.9702
+    },
+    "bench_oos": {
+      "start": "2024-01-01",
+      "end": "2026-11-22",
+      "days": 1057,
+      "cagr": 0.1543,
+      "vol": 0.6203,
+      "sharpe": 0.5422,
+      "sortino": 0.786,
+      "max_dd": -0.5469,
+      "calmar": 0.2821,
+      "total_return": 0.5152
     }
   }
 }
