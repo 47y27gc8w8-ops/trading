@@ -774,6 +774,21 @@ const portfolioView = {
 window.portfolioView = portfolioView;
 
 /* ================================================================ DATA === */
+function storagePanel(h, mb) {
+  const u = h.storage, ar = h.archive || {};
+  if (!u) return "";
+  const gb = (b) => (b / 1024 ** 3).toFixed(b >= 10 * 1024 ** 3 ? 0 : 2) + " GB";
+  const ds = Object.entries(u.datasets).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const pct = u.pct * 100, days = ar.book_days || [];
+  return `<section class="panel mb">
+    <div class="panel-head"><h2>Storage budget</h2><span class="sub">${gb(u.total)} of ${gb(u.budget)} · ${gb(u.disk_free)} free on disk</span></div>
+    <div style="padding:0 20px 16px">
+      <div class="meter" style="height:8px;background:var(--control);border-radius:4px;overflow:hidden;margin:4px 0 14px"><div style="height:100%;width:${Math.max(0.5, Math.min(100, pct)).toFixed(1)}%;background:${pct >= 95 ? "var(--negative)" : pct >= 80 ? "var(--warning, #d6a64a)" : "var(--accent)"}"></div></div>
+      <div class="stats">${ds.map(([k, v]) => `<div class="stat"><div class="k">${esc(k)}</div><div class="v num">${gb(v)}</div></div>`).join("")}</div>
+      <p class="note" style="border:0;margin:10px 0 0;padding:0">Archive: 1 m candles for <b>${ar.klines_pairs ?? "—"}</b> USDT pairs (incl. delisted) · every trade for <b>${ar.trades_pairs ?? "—"}</b> coins (${ar.trades_files ?? 0} files) · best bid/ask recorded on <b>${days.length}</b> day(s)${days.length ? ` since ${esc(days[0])}` : ""}. Book ticks are a rolling window capped at ${gb(u.book_max)}; backfills stop at 95 % of the budget.</p>
+    </div></section>`;
+}
+
 const dataView = {
   async mount(el) {
     el.innerHTML = `<div class="title-row"><div><h1>Data health</h1><p class="lede">Scanning the Parquet store… (cached for 10 min, the first scan takes about 10 s)</p></div></div>`;
@@ -814,6 +829,7 @@ const dataView = {
         <div class="kpi"><div class="k">Live quotes</div><div class="v num ${fresh ? "" : "down"}">${nQuotes}<span class="muted" style="font-size:14px"> /${h.symbols || state.assets.length}</span></div><div class="s">polled every ${fd.poll_seconds || 30} s · ${srcOk.length}/${srcs.length} sources OK · ${mb(h.quotes_size || 0)} snapshots</div></div>
         <div class="kpi"><div class="k">Yahoo 1 m collector</div><div class="v ${yr ? (yOk ? "" : "down") : "muted"}">${yr ? (yOk ? "OK" : `${yr.failed.length} failed`) : "Never run"}</div><div class="s">${yr ? "last run " + ago(Date.parse(yr.time) / 1000) + " · " : ""}hourly on weekdays · ${live.length}/${feeds.length} crypto 1 m feeds live</div></div>
       </section>
+      ${storagePanel(h, mb)}
       <section class="panel">
         <div class="panel-head"><h2>Datasets</h2><span class="sub">times in your local zone</span></div>
         <div class="scroll-frame table-wrap"><table><thead><tr><th class="l">Symbol</th><th class="l">Dataset</th><th>First bar</th><th>Last bar</th><th>Rows</th><th>Gaps</th><th>Missing bars</th><th class="l">Freshness</th><th>Size</th></tr></thead><tbody>

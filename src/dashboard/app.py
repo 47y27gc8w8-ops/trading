@@ -48,15 +48,35 @@ _cache_lock = threading.Lock()
 _portfolio_lock = threading.Lock()
 
 
-def cached(key: str, ttl: float, fn):
+_refreshing: set[str] = set()
+
+
+def cached(key: str, ttl: float, fn, stale_ok: bool = False):
+    """TTL cache. stale_ok: once a value exists, an expired hit is returned at once and
+    rebuilt in a background thread (for slow scans such as /api/health)."""
     with _cache_lock:
         hit = _cache.get(key)
         if hit and time.time() - hit[0] < ttl:
+            return hit[1]
+        if hit and stale_ok:
+            if key not in _refreshing:
+                _refreshing.add(key)
+                threading.Thread(target=_refresh, args=(key, fn), daemon=True).start()
             return hit[1]
     val = fn()
     with _cache_lock:
         _cache[key] = (time.time(), val)
     return val
+
+
+def _refresh(key: str, fn) -> None:
+    try:
+        val = fn()
+        with _cache_lock:
+            _cache[key] = (time.time(), val)
+    finally:
+        with _cache_lock:
+            _refreshing.discard(key)
 
 
 def q(sql: str, params: list | None = None) -> pd.DataFrame:
@@ -128,7 +148,9 @@ def crypto_history() -> dict[str, pd.DataFrame]:
     def build():
         now = datetime.now(timezone.utc)
         months = {(d.year, d.month) for d in (now, now - timedelta(days=9))}
-        files = [str(f) for y, m in months for f in CRYPTO_1M.glob(f"symbol=*/year={y}/month={m:02d}/data.parquet")]
+        coins = [s for s, t in universe().items() if t == "crypto"]  # not the ~700 archive-only pairs
+        files = [str(f) for s in coins for y, m in months
+                 for f in CRYPTO_1M.glob(f"symbol={s}/year={y}/month={m:02d}/data.parquet")]
         if not files:
             return {}
         df = q(f"""
@@ -303,11 +325,13 @@ def health() -> dict:
     def build():
         rows, now = [], datetime.now(timezone.utc)
         uni = universe()
-        if any(CRYPTO_1M.glob("symbol=*/year=*/month=*/data.parquet")):
+        coin_globs = [str(CRYPTO_1M / f"symbol={s}" / "year=*" / "month=*" / "data.parquet")
+                      for s, t in uni.items() if t == "crypto" and (CRYPTO_1M / f"symbol={s}").exists()]
+        if coin_globs:
             df = q(f"""
                 WITH t AS (SELECT regexp_extract(filename, 'symbol=([^/]+)', 1) AS symbol, open_time,
                                   epoch(open_time) - lag(epoch(open_time)) OVER (PARTITION BY filename ORDER BY open_time) AS d
-                           FROM read_parquet('{CRYPTO_1M}/symbol=*/year=*/month=*/data.parquet', filename=true, hive_partitioning=false))
+                           FROM read_parquet({coin_globs!r}, filename=true, hive_partitioning=false))
                 SELECT symbol, min(open_time) AS first, max(open_time) AS last, count(*) AS rows,
                        count(*) FILTER (WHERE d > 60) AS gaps, coalesce(sum(d / 60 - 1) FILTER (WHERE d > 60), 0) AS missing
                 FROM t GROUP BY 1""")
@@ -347,9 +371,17 @@ def health() -> dict:
         quotes_size = sum(f.stat().st_size for f in QUOTES.rglob("*.parquet")) if QUOTES.exists() else 0
         status_file = LOGS / "yahoo_intraday_status.json"
         status = json.loads(status_file.read_text()) if status_file.exists() else {}
+        from src.common.budget import usage
+        u = usage()
+        archive = {
+            "klines_pairs": sum(1 for _ in CRYPTO_1M.glob("symbol=*")),
+            "trades_pairs": sum(1 for _ in (DATA / "crypto" / "trades").glob("symbol=*")),
+            "trades_files": sum(1 for _ in (DATA / "crypto" / "trades").glob("symbol=*/*/*/*.parquet")),
+            "book_days": sorted(p.name[5:] for p in (DATA / "crypto" / "book").glob("date=*")),
+        }
         return {"rows": rows, "yahoo_intraday": status.get("_last_run"), "generated": int(time.time()),
-                "quotes_size": quotes_size, "symbols": len(uni)}
-    out = dict(cached("health", 600, build))
+                "quotes_size": quotes_size, "symbols": len(uni), "storage": u, "archive": archive}
+    out = dict(cached("health", 600, build, stale_ok=True))
     out["feed"] = feed_status()  # always fresh
     return out
 
@@ -537,6 +569,11 @@ def api_settings(s: Settings):
 # ------------------------------------------------------------------ static ---
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+
+@app.on_event("startup")
+def _warm() -> None:  # build the slow health scan in the background right after start
+    threading.Thread(target=lambda: api_health(), daemon=True).start()
 
 
 @app.get("/")

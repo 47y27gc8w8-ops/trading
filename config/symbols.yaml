@@ -688,3 +688,15 @@ stock:
   - "ZBH"
   - "ZTS"
 crypto_history_start: 2017-08
+# Extra history for backtesting (Binance archive, not shown live on the dashboard)
+history:
+  klines_all_usdt: true   # 1m klines for every USDT pair Binance ever listed, incl. delisted (~700)
+  trades_top_n: 20        # every individual trade for the first N coins of `crypto`
+  trades_start: 2023-12   # ... from this month on (about 3 years)
+# Live best bid/ask (bookTicker) for every coin in `crypto`, rolling window
+book_ticker: true
+# Disk budget for ./data. >= 80 %: warning email, >= 95 %: backfills stop.
+# Book ticks are pruned oldest-day-first above book_max_gb or above 90 % of the budget.
+storage:
+  budget_gb: 750
+  book_max_gb: 300

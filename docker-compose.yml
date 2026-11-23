@@ -36,6 +36,19 @@ services:
       retries: 3
       start_period: 60s
 
+  # Every best bid/ask change for all coins (Binance bookTicker), rolling window, see config storage.
+  binance-book:
+    <<: *base
+    command: python -m src.collectors.binance_book
+    restart: unless-stopped
+    stop_grace_period: 60s
+    healthcheck:   # unhealthy if no book file was written for 15 minutes
+      test: ["CMD", "python", "-c", "import glob,os,time,sys; f=glob.glob('/app/data/crypto/book/date=*/*.parquet'); sys.exit(not f or time.time()-max(map(os.path.getmtime,f))>900)"]
+      interval: 120s
+      timeout: 60s
+      retries: 3
+      start_period: 600s
+
   dashboard:
     <<: *base
     command: uvicorn src.dashboard.app:app --host 0.0.0.0 --port 3000 --workers 1 --no-access-log
@@ -52,6 +65,16 @@ services:
   binance-history:
     <<: *base
     command: python -m src.collectors.binance_history
+    profiles: [jobs]
+
+  binance-trades:
+    <<: *base
+    command: python -m src.collectors.binance_trades
+    profiles: [jobs]
+
+  storage:
+    <<: *base
+    command: python -m src.tools.storage report
     profiles: [jobs]
 
   yahoo-daily:
