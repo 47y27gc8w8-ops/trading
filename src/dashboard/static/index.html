@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markets · Homelab</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2310b981'/><path d='M7 21l6-6 4 4 8-9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <span class="logo"><svg viewBox="0 0 32 32"><path d="M7 21l6-6 4 4 8-9" /></svg></span>
+      <span>Markets</span><span class="brand-sub">paper</span>
+    </a>
+    <nav class="tabs">
+      <a href="#/" data-tab="overview">Overview</a>
+      <a href="#/portfolio" data-tab="portfolio">Portfolio</a>
+      <a href="#/data" data-tab="data">Data</a>
+    </nav>
+    <div class="search">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="Search assets — bitcoin, sol, s&p 500…" autocomplete="off" spellcheck="false">
+      <kbd>/</kbd>
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <div class="live" id="live" title="Last refresh"><span class="dot"></span><span id="live-text">connecting…</span></div>
+  </header>
+
+  <main id="app"></main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/static/vendor/lightweight-charts.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

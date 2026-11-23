@@ -1,0 +1,15 @@
+{
+  "asset_class": "crypto",
+  "universe": ["BTCUSDT"],
+  "oos_start": "2024-01-01",
+  "periods_per_year": 365,
+  "cost_bps": 15,
+  "fitness": "sharpe",
+  "min_improvement": 0.02,
+  "params": {"lookback": 10, "mode": "both", "hold_days": 1},
+  "space": {
+    "lookback": {"min": 3, "max": 60, "step": 1},
+    "mode": {"choices": ["max", "min", "both"]},
+    "hold_days": {"min": 1, "max": 10, "step": 1}
+  }
+}

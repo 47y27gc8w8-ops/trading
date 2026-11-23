@@ -1,0 +1,15 @@
+{
+  "asset_class": "etf",
+  "universe": ["SPY", "QQQ"],
+  "start": "1999-03-10",
+  "oos_start": "2016-01-01",
+  "periods_per_year": 252,
+  "cost_bps": 5,
+  "fitness": "sharpe",
+  "min_improvement": 0.02,
+  "params": {"fast": 50, "slow": 200},
+  "space": {
+    "fast": {"min": 5, "max": 150, "step": 5},
+    "slow": {"min": 30, "max": 400, "step": 10}
+  }
+}

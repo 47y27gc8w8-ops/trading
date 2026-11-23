@@ -1,0 +1,42 @@
+{
+  "asset_class": "crypto",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "TRXUSDT",
+    "HYPEUSDT",
+    "ZECUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "ADAUSDT",
+    "XLMUSDT",
+    "BCHUSDT",
+    "NEARUSDT",
+    "LTCUSDT",
+    "AVAXUSDT"
+  ],
+  "oos_start": "2024-01-01",
+  "periods_per_year": 365,
+  "cost_bps": 15,
+  "fitness": "sharpe",
+  "min_improvement": 0.02,
+  "params": {
+    "entry_n": 20,
+    "exit_n": 10
+  },
+  "space": {
+    "entry_n": {
+      "min": 5,
+      "max": 200,
+      "step": 5
+    },
+    "exit_n": {
+      "min": 3,
+      "max": 100,
+      "step": 3
+    }
+  }
+}

@@ -1,0 +1,25 @@
+# Asset universe. Crypto = top coins by market cap (CoinGecko, 2026-11-22) that trade
+# as USDT spot pairs on Binance; stablecoins excluded (XMR, LEO, WBT not on Binance).
+crypto:            # Binance spot pairs, quote = USDT
+  - BTCUSDT        # Bitcoin
+  - ETHUSDT        # Ethereum
+  - BNBUSDT        # BNB
+  - XRPUSDT        # XRP
+  - SOLUSDT        # Solana
+  - TRXUSDT        # TRON
+  - HYPEUSDT       # Hyperliquid
+  - ZECUSDT        # Zcash
+  - DOGEUSDT       # Dogecoin
+  - LINKUSDT       # Chainlink
+  - ADAUSDT        # Cardano
+  - XLMUSDT        # Stellar
+  - BCHUSDT        # Bitcoin Cash
+  - NEARUSDT       # NEAR Protocol
+  - LTCUSDT        # Litecoin
+  - AVAXUSDT       # Avalanche
+etf:               # Yahoo tickers
+  - SPY            # SPDR S&P 500 ETF (US)
+  - CSSPX.SW       # iShares Core S&P 500 UCITS on SIX (tradable for Swiss residents)
+  - ^GSPC          # S&P 500 index, long daily history
+  - QQQ            # Nasdaq-100 ETF
+crypto_history_start: 2017-08

@@ -1,0 +1,10 @@
+pandas
+pyarrow
+requests
+websockets
+yfinance
+pyyaml
+tenacity
+fastapi
+uvicorn
+duckdb

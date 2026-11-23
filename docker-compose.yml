@@ -1,0 +1,65 @@
+x-base: &base
+  build: .
+  image: trading-pipeline:latest
+  user: "1000:1000"          # files on ./data are owned by the host user
+  environment:
+    TZ: UTC
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+  volumes:
+    - ./data:/app/data
+    - ./logs:/app/logs
+    - ./config:/app/config:ro
+    - ./src:/app/src:ro
+
+services:
+  binance-live:
+    <<: *base
+    command: python -m src.collectors.binance_live
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  dashboard:
+    <<: *base
+    command: uvicorn src.dashboard.app:app --host 0.0.0.0 --port 3000 --workers 1 --no-access-log
+    ports:
+      - "0.0.0.0:3000:3000"   # IPv4 only: LAN + Tailscale; not on the public IPv6 address (no login!)
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/api/overview', timeout=20)"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+
+  # One-off / scheduled jobs: `docker compose run --rm <service>`
+  binance-history:
+    <<: *base
+    command: python -m src.collectors.binance_history
+    profiles: [jobs]
+
+  yahoo-daily:
+    <<: *base
+    command: python -m src.collectors.yahoo_daily
+    profiles: [jobs]
+
+  yahoo-intraday:
+    <<: *base
+    command: python -m src.collectors.yahoo_intraday
+    profiles: [jobs]
+
+  check-data:
+    <<: *base
+    command: python -m src.tools.check_data
+    profiles: [jobs]
+
+  backtest:
+    <<: *base
+    command: python -m src.backtest.evolve --help
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+      - ./src:/app/src:ro
+      - ./strategies:/app/strategies
+    profiles: [jobs]
