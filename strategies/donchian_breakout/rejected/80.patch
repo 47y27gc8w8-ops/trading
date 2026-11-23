@@ -1,0 +1,90 @@
+diff --git a/strategies/donchian_breakout/config.json b/strategies/donchian_breakout/config.json
+index 669b06c..8e09e14 100644
+--- a/strategies/donchian_breakout/config.json
++++ b/strategies/donchian_breakout/config.json
+@@ -25,7 +25,10 @@
+   "min_improvement": 0.02,
+   "params": {
+     "entry_n": 25,
+-    "exit_n": 7
++    "exit_n": 7,
++    "atr_n": 20,
++    "atr_mult": 2.0,
++    "risk": 0.05
+   },
+   "space": {
+     "entry_n": {
+@@ -37,6 +40,21 @@
+       "min": 3,
+       "max": 100,
+       "step": 3
++    },
++    "atr_n": {
++      "min": 5,
++      "max": 60,
++      "step": 5
++    },
++    "atr_mult": {
++      "min": 0.5,
++      "max": 4.0,
++      "step": 0.5
++    },
++    "risk": {
++      "min": 0.01,
++      "max": 0.2,
++      "step": 0.01
+     }
+   },
+   "champion": {
+diff --git a/strategies/donchian_breakout/strategy.py b/strategies/donchian_breakout/strategy.py
+index f27e6ed..dc5d160 100644
+--- a/strategies/donchian_breakout/strategy.py
++++ b/strategies/donchian_breakout/strategy.py
+@@ -1,20 +1,42 @@
+ """Donchian channel breakout (Turtle Traders, Richard Dennis 1983), long-only:
+ enter when close breaks above the highest high of the previous `entry_n` days,
+-exit when close falls below the lowest low of the previous `exit_n` days."""
++exit when close falls below the lowest low of the previous `exit_n` days.
++
++Position sizing (Turtle "N" units): at entry, size the position so that a move
++of `atr_mult` x ATR(`atr_n`) costs `risk` of the asset's 1/N sleeve:
++    sleeve fraction = min(1, risk / (atr_mult * ATR / close))
++The size is fixed for the life of the trade (like the Turtles' units), so the
++position is not resized daily."""
++import numpy as np
+ import pandas as pd
+ 
+-from src.backtest.helpers import equal_weight, frame, hold_until
++from src.backtest.helpers import equal_weight, frame
+ 
+ 
+ def valid(p):
+     return p["exit_n"] < p["entry_n"]
+ 
+ 
++def atr(b: pd.DataFrame, n: int) -> pd.Series:
++    prev = b["close"].shift(1)
++    tr = pd.concat([b["high"] - b["low"], (b["high"] - prev).abs(), (b["low"] - prev).abs()], axis=1).max(axis=1)
++    return tr.ewm(alpha=1 / n, adjust=False).mean()  # Wilder smoothing
++
++
+ def positions(bars, p):
+     c = frame(bars)
+     sig = {}
+     for s, b in bars.items():
+-        upper = b["high"].rolling(p["entry_n"]).max().shift(1)
+-        lower = b["low"].rolling(p["exit_n"]).min().shift(1)
+-        sig[s] = hold_until(b["close"] > upper, b["close"] < lower)
++        upper = b["high"].rolling(p["entry_n"]).max().shift(1).to_numpy()
++        lower = b["low"].rolling(p["exit_n"]).min().shift(1).to_numpy()
++        close = b["close"].to_numpy()
++        size = np.minimum(1.0, p["risk"] / (p["atr_mult"] * atr(b, p["atr_n"]) / b["close"])).to_numpy()
++        pos, out = 0.0, np.zeros(len(b))
++        for i in range(len(b)):
++            if pos and close[i] < lower[i]:
++                pos = 0.0
++            elif not pos and close[i] > upper[i] and size[i] == size[i]:
++                pos = size[i]
++            out[i] = pos
++        sig[s] = pd.Series(out, index=b.index)
+     return equal_weight(pd.DataFrame(sig).reindex(c.index), c)
