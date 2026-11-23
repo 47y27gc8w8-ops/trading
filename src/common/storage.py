@@ -4,6 +4,11 @@ Layout (all timestamps UTC):
   data/crypto/1m/symbol=<S>/year=<Y>/month=<M>/data.parquet   key: open_time
   data/etf/1d/<ticker>.parquet                                key: date
   data/etf/1m/ticker=<T>/date=<YYYY-MM-DD>/data.parquet       key: timestamp
+  data/quotes/source=<S>/date=<D>/hour=<HH>.parquet          key: (symbol, time)  30 s snapshots
+  data/quotes/latest.json                                     newest quote per symbol
+
+Despite the "etf" directory name, data/etf holds every Yahoo symbol: ETFs,
+indices and stocks.
 
 Writes are atomic (tmp file + rename) and guarded by an flock on a sibling
 lock file, so the history backfill and the live collector can safely write to
@@ -31,6 +36,7 @@ CRYPTO_1M = DATA / "crypto" / "1m"
 ETF_1D = DATA / "etf" / "1d"
 ETF_1M = DATA / "etf" / "1m"
 RAW_BINANCE = DATA / "raw" / "binance"
+QUOTES = DATA / "quotes"
 
 CRYPTO_COLUMNS = [
     "open_time", "open", "high", "low", "close", "volume", "close_time",
@@ -79,7 +85,7 @@ def _atomic_write(df: pd.DataFrame, path: Path) -> None:
     os.replace(tmp, path)
 
 
-def merge_write(path: Path, new: pd.DataFrame, key: str) -> int:
+def merge_write(path: Path, new: pd.DataFrame, key: str | list[str]) -> int:
     """Merge `new` into the Parquet file at `path`, dedup on `key` (new wins).
 
     Returns the number of rows added."""

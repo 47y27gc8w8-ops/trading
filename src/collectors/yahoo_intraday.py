@@ -1,7 +1,8 @@
 """Collect Yahoo 1m bars (Yahoo only serves ~last 30 days, max ~7 days per request).
 
-Run daily after the US close (~22:30 UTC). Each run fetches the last 7 days,
-so a failed run is filled by the next one. The first run for a ticker fetches
+Runs hourly on weekdays with --period 1d (fresh intraday bars) and once a day
+after the US close (~22:30 UTC) with the default --period 7d, so a failed run is
+filled by the next one. The first run for a ticker fetches
 the full ~30 day window in 7-day chunks. Raises an ALERT in the log if there
 has been no successful run for more than 5 days.
 """
@@ -20,7 +21,7 @@ from src.common.yahoo import PERMANENT, NoData, history, utc
 log = setup_logging("yahoo_intraday")
 STATUS = LOGS / "yahoo_intraday_status.json"
 ALERT_DAYS = 5
-SLEEP_BETWEEN = 3
+SLEEP_BETWEEN = 1
 
 
 def normalise(df: pd.DataFrame) -> pd.DataFrame:
@@ -29,7 +30,7 @@ def normalise(df: pd.DataFrame) -> pd.DataFrame:
     return df[["timestamp", "open", "high", "low", "close", "volume"]]
 
 
-def fetch_ticker(ticker: str) -> int:
+def fetch_ticker(ticker: str, period: str = "7d") -> int:
     first_run = not (ETF_1M / f"ticker={safe_ticker(ticker)}").exists()
     frames = []
     if first_run:
@@ -44,7 +45,7 @@ def fetch_ticker(ticker: str) -> int:
             start = end
             time.sleep(1)
     else:
-        frames.append(normalise(history(ticker, period="7d", interval="1m", prepost=False)))
+        frames.append(normalise(history(ticker, period=period, interval="1m", prepost=False)))
     df = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
     if df.empty:
         raise NoData(f"{ticker}: no 1m data")
@@ -60,7 +61,9 @@ def load_status() -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tickers", nargs="*", default=load_config()["etf"])
+    cfg = load_config()
+    ap.add_argument("--tickers", nargs="*", default=cfg["etf"] + cfg.get("stock", []))
+    ap.add_argument("--period", default="7d", help="lookback for tickers that already have data (1d..7d)")
     args = ap.parse_args()
     status = load_status()
     now = datetime.now(timezone.utc)
@@ -69,7 +72,7 @@ def main() -> None:
         if i:
             time.sleep(SLEEP_BETWEEN)
         try:
-            fetch_ticker(t)
+            fetch_ticker(t, args.period)
             status.setdefault(t, {})["last_success"] = now.isoformat()
         except Exception:
             failed.append(t)
