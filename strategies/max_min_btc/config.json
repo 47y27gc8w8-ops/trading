@@ -1,15 +1,92 @@
 {
   "asset_class": "crypto",
-  "universe": ["BTCUSDT"],
+  "universe": [
+    "BTCUSDT"
+  ],
   "oos_start": "2024-01-01",
   "periods_per_year": 365,
   "cost_bps": 15,
   "fitness": "sharpe",
   "min_improvement": 0.02,
-  "params": {"lookback": 10, "mode": "both", "hold_days": 1},
+  "params": {
+    "lookback": 11,
+    "mode": "max",
+    "hold_days": 1
+  },
   "space": {
-    "lookback": {"min": 3, "max": 60, "step": 1},
-    "mode": {"choices": ["max", "min", "both"]},
-    "hold_days": {"min": 1, "max": 10, "step": 1}
+    "lookback": {
+      "min": 3,
+      "max": 60,
+      "step": 1
+    },
+    "mode": {
+      "choices": [
+        "max",
+        "min",
+        "both"
+      ]
+    },
+    "hold_days": {
+      "min": 1,
+      "max": 10,
+      "step": 1
+    }
+  },
+  "champion": {
+    "id": 3,
+    "code": "cf309a96a6",
+    "fitness": 0.9893,
+    "is": {
+      "start": "2017-08-17",
+      "end": "2023-12-31",
+      "days": 2328,
+      "cagr": 0.2975,
+      "vol": 0.3106,
+      "sharpe": 0.9893,
+      "sortino": 0.9432,
+      "max_dd": -0.3891,
+      "calmar": 0.7644,
+      "total_return": 4.2644,
+      "avg_exposure": 0.1847,
+      "turnover_per_year": 68.6727
+    },
+    "oos": {
+      "start": "2024-01-01",
+      "end": "2026-11-22",
+      "days": 1057,
+      "cagr": -0.0387,
+      "vol": 0.1961,
+      "sharpe": -0.1052,
+      "sortino": -0.0963,
+      "max_dd": -0.2791,
+      "calmar": -0.1387,
+      "total_return": -0.1081,
+      "avg_exposure": 0.1788,
+      "turnover_per_year": 69.754
+    },
+    "bench_is": {
+      "start": "2017-08-17",
+      "end": "2023-12-31",
+      "days": 2328,
+      "cagr": 0.4318,
+      "vol": 0.7364,
+      "sharpe": 0.8612,
+      "sortino": 1.1479,
+      "max_dd": -0.8319,
+      "calmar": 0.5191,
+      "total_return": 8.8676
+    },
+    "bench_oos": {
+      "start": "2024-01-01",
+      "end": "2026-11-22",
+      "days": 1057,
+      "cagr": 0.1366,
+      "vol": 0.4698,
+      "sharpe": 0.5065,
+      "sortino": 0.767,
+      "max_dd": -0.5297,
+      "calmar": 0.258,
+      "total_return": 0.4491
+    }
   }
 }
