@@ -16,35 +16,33 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from src.common.storage import CRYPTO_1M, DATA, ETF_1M, LOGS, etf_daily_path, load_config, safe_ticker
+from src.common.storage import CRYPTO_1M, DATA, ETF_1D, ETF_1M, LOGS, QUOTES, etf_daily_path, load_config, safe_ticker
 
 STATIC = Path(__file__).parent / "static"
 PORTFOLIO = DATA / "portfolio.json"
 
-NAMES = {
-    "BTCUSDT": "Bitcoin", "ETHUSDT": "Ethereum", "BNBUSDT": "BNB", "XRPUSDT": "XRP", "SOLUSDT": "Solana",
-    "TRXUSDT": "TRON", "HYPEUSDT": "Hyperliquid", "ZECUSDT": "Zcash", "DOGEUSDT": "Dogecoin",
-    "LINKUSDT": "Chainlink", "ADAUSDT": "Cardano", "XLMUSDT": "Stellar", "BCHUSDT": "Bitcoin Cash",
-    "NEARUSDT": "NEAR Protocol", "LTCUSDT": "Litecoin", "AVAXUSDT": "Avalanche",
-    "SPY": "SPDR S&P 500 ETF", "CSSPX.SW": "iShares Core S&P 500 UCITS (SIX)", "^GSPC": "S&P 500 Index",
-    "QQQ": "Invesco Nasdaq-100 ETF", "VOO": "Vanguard S&P 500 ETF", "IVV": "iShares Core S&P 500 ETF",
-}
+# fallback names; the live quote feed (Yahoo longName / CoinGecko name) is the main source
+NAMES = {"^GSPC": "S&P 500 Index", "CSSPX.SW": "iShares Core S&P 500 UCITS (SIX)"}
 # extra search terms
 ALIASES = {
     "SPY": "sp500 s&p500 smp500 s&p 500 sandp spx", "CSSPX.SW": "sp500 s&p500 smp500 s&p 500 ishares cspx six swiss",
-    "^GSPC": "sp500 s&p500 smp500 s&p 500 spx index gspc", "QQQ": "nasdaq ndx tech",
+    "^GSPC": "sp500 s&p500 smp500 s&p 500 spx index gspc", "QQQ": "nasdaq ndx tech", "^IXIC": "nasdaq composite",
+    "^SSMI": "smi swiss market index", "^DJI": "dow jones", "^VIX": "volatility fear",
     "BTCUSDT": "btc xbt", "ETHUSDT": "eth ether", "SOLUSDT": "sol", "DOGEUSDT": "doge", "XRPUSDT": "ripple",
     "AVAXUSDT": "avax", "ADAUSDT": "ada", "LINKUSDT": "link", "BNBUSDT": "binance coin",
+    "GOOGL": "google alphabet", "GOOG": "google alphabet", "META": "facebook", "BRK-B": "berkshire buffett",
 }
 TF_SECONDS = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "4h": 14400, "1d": 86400, "1w": 604800}
 TF_INTERVAL = {"1m": "1 minute", "5m": "5 minutes", "15m": "15 minutes", "1h": "1 hour", "4h": "4 hours",
                "1d": "1 day", "1w": "7 days"}
 
 app = FastAPI(title="Trading dashboard")
+app.add_middleware(GZipMiddleware, minimum_size=2000)
 _cache: dict[str, tuple[float, object]] = {}
 _cache_lock = threading.Lock()
 _portfolio_lock = threading.Lock()
@@ -75,10 +73,13 @@ def q(sql: str, params: list | None = None) -> pd.DataFrame:
 
 
 def universe() -> dict[str, str]:
-    cfg = load_config()
-    out = {s: "crypto" for s in cfg.get("crypto", [])}
-    out.update({t: "etf" for t in cfg.get("etf", [])})
-    return out
+    def build():
+        cfg = load_config()
+        out = {str(s): "crypto" for s in cfg.get("crypto", [])}
+        out.update({str(t): "etf" for t in cfg.get("etf", [])})
+        out.update({str(t): "stock" for t in cfg.get("stock", [])})
+        return out
+    return cached("universe", 60, build)
 
 
 def asset_type(symbol: str) -> str:
@@ -100,89 +101,131 @@ def has_files(pattern: str) -> bool:
     return bool(glob.glob(pattern))
 
 
-def is_tradable(symbol: str) -> bool:
-    return not symbol.startswith("^")  # indices are not tradable
+def is_tradable(symbol: str, currency: str | None = None) -> bool:
+    # indices are not tradable; the paper portfolio is in USD, so only USD/USDT-quoted assets
+    return not symbol.startswith("^") and currency in (None, "USD", "USDT")
 
 
 # ---------------------------------------------------------------- overview ---
 
-def crypto_summary(symbol: str) -> dict:
-    g = crypto_glob(symbol)
-    if not has_files(g):
-        return {"symbol": symbol, "type": "crypto", "name": NAMES.get(symbol, symbol), "price": None}
-    since = datetime.now(timezone.utc) - timedelta(days=8)
-    df = q(f"""
-        SELECT open_time, close, high, low, quote_volume FROM read_parquet('{g}', hive_partitioning=false)
-        WHERE open_time >= ? ORDER BY open_time""", [since])
-    if df.empty:
-        df = q(f"SELECT open_time, close, high, low, quote_volume FROM read_parquet('{g}', hive_partitioning=false) "
-               "ORDER BY open_time DESC LIMIT 1")
-    last = df.iloc[-1]
-    t_last = last.open_time
-
-    def change(delta):
-        past = df[df.open_time <= t_last - delta]
-        return None if past.empty else float(last.close / past.iloc[-1].close - 1)
-
-    d24 = df[df.open_time > t_last - timedelta(hours=24)]
-    spark = df.set_index("open_time").close.resample("1h").last().dropna().tail(168)
-    return {
-        "symbol": symbol, "type": "crypto", "name": NAMES.get(symbol, symbol), "currency": "USDT",
-        "price": float(last.close), "time": int(t_last.timestamp()) + 60,
-        "change_24h": change(timedelta(hours=24)), "change_7d": change(timedelta(days=7)),
-        "high_24h": float(d24.high.max()), "low_24h": float(d24.low.min()),
-        "volume_24h": float(d24.quote_volume.sum()),
-        "spark": [round(float(x), 8) for x in spark.values],
-        "tradable": True,
-    }
+_latest = {"mtime": 0.0, "data": {}}
 
 
-def etf_summary(ticker: str) -> dict:
-    p = etf_daily_path(ticker)
-    base = {"symbol": ticker, "type": "etf", "name": NAMES.get(ticker, ticker), "tradable": is_tradable(ticker)}
-    if not p.exists():
-        return {**base, "price": None}
-    d = pd.read_parquet(p).sort_values("date")
-    price, t = float(d.close.iloc[-1]), int(d.date.iloc[-1].timestamp())
-    # newer intraday bar (e.g. during the trading day) wins
-    g = etf_1m_glob(ticker)
-    if has_files(g):
-        m = q(f"SELECT timestamp, close FROM read_parquet('{g}', hive_partitioning=false) ORDER BY timestamp DESC LIMIT 1")
-        if not m.empty and m.timestamp.iloc[0] > d.date.iloc[-1] + timedelta(days=1):
-            price, t = float(m.close.iloc[0]), int(m.timestamp.iloc[0].timestamp()) + 60
+def latest_quotes() -> dict:
+    """data/quotes/latest.json from the live-quotes service (re-read when it changes)."""
+    p = QUOTES / "latest.json"
+    try:
+        m = p.stat().st_mtime
+        if m != _latest["mtime"]:
+            _latest["data"], _latest["mtime"] = json.loads(p.read_text()), m
+    except (OSError, ValueError):
+        pass
+    return _latest["data"]
 
-    def change(n):
-        return None if len(d) <= n else float(price / d.close.iloc[-1 - n] - 1)
 
-    last_day = d.date.iloc[-1]
-    return {
-        **base, "currency": "USD" if not ticker.startswith("^") else "pts",
-        "price": price, "time": t,
-        "change_24h": change(1) if price == float(d.close.iloc[-1]) else float(price / d.close.iloc[-1] - 1),
-        "change_7d": float(price / d[d.date <= last_day - timedelta(days=7)].close.iloc[-1] - 1) if len(d) > 7 else None,
-        "high_24h": float(d.high.iloc[-1]), "low_24h": float(d.low.iloc[-1]),
-        "volume_24h": float(d.volume.iloc[-1] * d.close.iloc[-1]),
-        "spark": [round(float(x), 4) for x in d.close.tail(60).values],
-    }
+def crypto_history() -> dict[str, pd.DataFrame]:
+    """Hourly closes for the last 8 days of every coin, in one scan (cached 10 min)."""
+    def build():
+        now = datetime.now(timezone.utc)
+        months = {(d.year, d.month) for d in (now, now - timedelta(days=9))}
+        files = [str(f) for y, m in months for f in CRYPTO_1M.glob(f"symbol=*/year={y}/month={m:02d}/data.parquet")]
+        if not files:
+            return {}
+        df = q(f"""
+            SELECT regexp_extract(filename, 'symbol=([^/]+)', 1) AS symbol,
+                   time_bucket(INTERVAL '1 hour', open_time) AS t, arg_max(close, open_time) AS close,
+                   max(open_time) AS last
+            FROM read_parquet({files!r}, filename=true, hive_partitioning=false)
+            WHERE open_time >= ? GROUP BY 1, 2 ORDER BY 1, 2""", [now - timedelta(days=8)])
+        return {s: g.reset_index(drop=True) for s, g in df.groupby("symbol")}
+    return cached("crypto_history", 600, build)
+
+
+def yahoo_history() -> dict[str, pd.DataFrame]:
+    """Daily bars for the last ~100 days of every Yahoo symbol, in one scan (cached 10 min)."""
+    def build():
+        if not any(ETF_1D.glob("*.parquet")):
+            return {}
+        df = q(f"""
+            SELECT regexp_extract(filename, '([^/]+)\.parquet$', 1) AS symbol, date, close, high, low, volume
+            FROM read_parquet('{ETF_1D}/*.parquet', filename=true) WHERE date >= ? ORDER BY 1, 2""",
+               [datetime.now(timezone.utc) - timedelta(days=100)])
+        return {s: g.reset_index(drop=True) for s, g in df.groupby("symbol")}
+    return cached("yahoo_history", 600, build)
+
+
+def _num(x):
+    return None if x is None or (isinstance(x, float) and x != x) else float(x)
+
+
+def asset_summary(symbol: str, typ: str, quote: dict | None, hist: pd.DataFrame | None) -> dict:
+    index = symbol.startswith("^")
+    out = {"symbol": symbol, "type": typ, "name": NAMES.get(symbol, symbol), "price": None, "spark": [],
+           "change_7d": None, "aliases": ALIASES.get(symbol, "")}
+    if quote:
+        out.update({
+            "name": NAMES.get(symbol) or quote.get("name") or symbol,
+            "currency": "pts" if index else quote.get("currency"),
+            "price": quote.get("price"), "time": int(quote.get("time") or quote.get("fetched") or 0),
+            "fetched": int(quote.get("fetched") or 0),
+            "change_24h": quote.get("change_pct"), "high_24h": quote.get("day_high"), "low_24h": quote.get("day_low"),
+            "volume_24h": quote.get("quote_volume"), "market_cap": quote.get("market_cap"), "rank": quote.get("rank"),
+            "market_state": quote.get("market_state"), "exchange": quote.get("exchange"),
+            "bid": quote.get("bid"), "ask": quote.get("ask"), "prev_close": quote.get("prev_close"),
+        })
+    if hist is not None and not hist.empty:
+        last = hist.iloc[-1]
+        if out["price"] is None:  # quote feed down: fall back to the stored bars
+            out.update({"price": _num(last.close), "time": int(last.get("last", last.get("date")).timestamp()),
+                        "currency": out.get("currency") or ("USDT" if typ == "crypto" else "pts" if index else "USD")})
+            if typ != "crypto":
+                out.update({"high_24h": _num(last.high), "low_24h": _num(last.low),
+                            "volume_24h": _num(last.volume * last.close),
+                            "change_24h": _num(last.close / hist.close.iloc[-2] - 1) if len(hist) > 1 else None})
+        tcol = "t" if typ == "crypto" else "date"
+        ref_t = hist[tcol].iloc[-1] - timedelta(days=7)
+        past = hist[hist[tcol] <= ref_t]
+        if not past.empty and out["price"]:
+            out["change_7d"] = out["price"] / float(past.close.iloc[-1]) - 1
+        vals = hist.close.tail(168 if typ == "crypto" else 60).to_numpy()
+        if typ == "crypto":
+            vals = vals[::-2][::-1]  # every 2nd hour, ending on the newest: keeps the payload small
+        out["spark"] = [float(f"{v:.5g}") for v in vals]
+    out["tradable"] = is_tradable(symbol, out.get("currency"))
+    return out
 
 
 def overview() -> list[dict]:
     def build():
+        quotes = latest_quotes().get("quotes", {})
+        ch, yh = crypto_history(), yahoo_history()
         out = []
         for s, typ in universe().items():
             try:
-                out.append(crypto_summary(s) if typ == "crypto" else etf_summary(s))
+                hist = ch.get(s) if typ == "crypto" else yh.get(safe_ticker(s))
+                out.append(asset_summary(s, typ, quotes.get(s), hist))
             except Exception as e:  # never break the page for one symbol
                 out.append({"symbol": s, "type": typ, "name": NAMES.get(s, s), "price": None, "error": str(e)})
-        for o in out:
-            o["aliases"] = ALIASES.get(o["symbol"], "")
-        return out
-    return cached("overview", 20, build)
+        # default order: crypto by CoinGecko rank, stocks by market cap, ETFs as configured
+        rank = {a["symbol"]: i for i, a in enumerate(out)}
+        def key(a):
+            if a["type"] == "crypto":
+                return (0, a.get("rank") or 10**6, rank[a["symbol"]])
+            if a["type"] == "stock":
+                return (2, -(a.get("market_cap") or 0), rank[a["symbol"]])
+            return (1, 0, rank[a["symbol"]])
+        return sorted(out, key=key)
+    return cached("overview", 10, build)
+
+
+def feed_status() -> dict:
+    lq = latest_quotes()
+    return {"generated": lq.get("generated"), "poll_seconds": lq.get("poll_seconds"), "sources": lq.get("status", {})}
 
 
 @app.get("/api/overview")
 def api_overview():
-    return {"assets": overview(), "now": int(time.time())}
+    return {"assets": overview(), "now": int(time.time()), "feed": feed_status()}
 
 
 @app.get("/api/search")
@@ -255,51 +298,60 @@ def api_bars(symbol: str, tf: str = "1h", end: int | None = None, limit: int = 1
 
 # ------------------------------------------------------------------ health ---
 
-def health() -> list[dict]:
+def health() -> dict:
+    """Per-dataset coverage, gaps and freshness. One bulk query per dataset (cached 10 min)."""
     def build():
         rows, now = [], datetime.now(timezone.utc)
-        for s, typ in universe().items():
-            if typ == "crypto":
-                g = crypto_glob(s)
-                if not has_files(g):
-                    rows.append({"symbol": s, "dataset": "crypto 1m", "rows": 0})
+        uni = universe()
+        if any(CRYPTO_1M.glob("symbol=*/year=*/month=*/data.parquet")):
+            df = q(f"""
+                WITH t AS (SELECT regexp_extract(filename, 'symbol=([^/]+)', 1) AS symbol, open_time,
+                                  epoch(open_time) - lag(epoch(open_time)) OVER (PARTITION BY filename ORDER BY open_time) AS d
+                           FROM read_parquet('{CRYPTO_1M}/symbol=*/year=*/month=*/data.parquet', filename=true, hive_partitioning=false))
+                SELECT symbol, min(open_time) AS first, max(open_time) AS last, count(*) AS rows,
+                       count(*) FILTER (WHERE d > 60) AS gaps, coalesce(sum(d / 60 - 1) FILTER (WHERE d > 60), 0) AS missing
+                FROM t GROUP BY 1""")
+            for r in df.itertuples():
+                if uni.get(r.symbol) != "crypto":
                     continue
-                r = q(f"""
-                    WITH t AS (SELECT open_time, epoch(open_time) - lag(epoch(open_time)) OVER (ORDER BY open_time) AS d
-                               FROM read_parquet('{g}', hive_partitioning=false))
-                    SELECT min(open_time) AS first, max(open_time) AS last, count(*) AS rows,
-                           count(*) FILTER (WHERE d > 60) AS gaps,
-                           coalesce(sum(d / 60 - 1) FILTER (WHERE d > 60), 0) AS missing
-                    FROM t""").iloc[0]
-                rows.append({"symbol": s, "dataset": "crypto 1m", "first": int(r["first"].timestamp()),
-                             "last": int(r["last"].timestamp()), "rows": int(r["rows"]), "gaps": int(r.gaps),
-                             "missing": int(r.missing), "lag_min": round((now - r["last"]).total_seconds() / 60 - 1, 1),
-                             "size": sum(f.stat().st_size for f in (CRYPTO_1M / f"symbol={s}").rglob("*.parquet"))})
-            else:
-                p = etf_daily_path(s)
-                if p.exists():
-                    d = pd.read_parquet(p, columns=["date"])
-                    rows.append({"symbol": s, "dataset": "etf 1d", "first": int(d.date.min().timestamp()),
-                                 "last": int(d.date.max().timestamp()), "rows": len(d), "size": p.stat().st_size})
-                g = etf_1m_glob(s)
-                if has_files(g):
-                    r = q(f"""
-                        WITH t AS (SELECT timestamp, epoch(timestamp) - lag(epoch(timestamp)) OVER (
-                                       PARTITION BY timestamp::DATE ORDER BY timestamp) AS d
-                                   FROM read_parquet('{g}', hive_partitioning=false))
-                        SELECT min(timestamp) AS first, max(timestamp) AS last, count(*) AS rows,
-                               count(DISTINCT timestamp::DATE) AS days,
-                               count(*) FILTER (WHERE d > 60) AS gaps,
-                               coalesce(sum(d / 60 - 1) FILTER (WHERE d > 60), 0) AS missing
-                        FROM t""").iloc[0]
-                    rows.append({"symbol": s, "dataset": "etf 1m", "first": int(r["first"].timestamp()),
-                                 "last": int(r["last"].timestamp()), "rows": int(r["rows"]), "days": int(r.days),
+                rows.append({"symbol": r.symbol, "dataset": "crypto 1m", "first": int(r.first.timestamp()),
+                             "last": int(r.last.timestamp()), "rows": int(r.rows), "gaps": int(r.gaps),
+                             "missing": int(r.missing), "lag_min": round((now - r.last).total_seconds() / 60 - 1, 1),
+                             "size": sum(f.stat().st_size for f in (CRYPTO_1M / f"symbol={r.symbol}").rglob("*.parquet"))})
+        yahoo = {safe_ticker(s): s for s, t in uni.items() if t != "crypto"}
+        if any(ETF_1D.glob("*.parquet")):
+            df = q(f"""SELECT regexp_extract(filename, '([^/]+)\.parquet$', 1) AS f, min(date) AS first, max(date) AS last,
+                              count(*) AS rows FROM read_parquet('{ETF_1D}/*.parquet', filename=true) GROUP BY 1""")
+            for r in df.itertuples():
+                if r.f in yahoo:
+                    rows.append({"symbol": yahoo[r.f], "dataset": f"{uni[yahoo[r.f]]} 1d", "first": int(r.first.timestamp()),
+                                 "last": int(r.last.timestamp()), "rows": int(r.rows),
+                                 "size": (ETF_1D / f"{r.f}.parquet").stat().st_size})
+        if any(ETF_1M.glob("ticker=*/date=*/data.parquet")):
+            df = q(f"""
+                WITH t AS (SELECT regexp_extract(filename, 'ticker=([^/]+)', 1) AS f, timestamp,
+                                  epoch(timestamp) - lag(epoch(timestamp)) OVER (PARTITION BY filename ORDER BY timestamp) AS d
+                           FROM read_parquet('{ETF_1M}/ticker=*/date=*/data.parquet', filename=true, hive_partitioning=false))
+                SELECT f, min(timestamp) AS first, max(timestamp) AS last, count(*) AS rows,
+                       count(DISTINCT timestamp::DATE) AS days, count(*) FILTER (WHERE d > 60) AS gaps,
+                       coalesce(sum(d / 60 - 1) FILTER (WHERE d > 60), 0) AS missing
+                FROM t GROUP BY 1""")
+            for r in df.itertuples():
+                if r.f in yahoo:
+                    rows.append({"symbol": yahoo[r.f], "dataset": f"{uni[yahoo[r.f]]} 1m", "first": int(r.first.timestamp()),
+                                 "last": int(r.last.timestamp()), "rows": int(r.rows), "days": int(r.days),
                                  "gaps": int(r.gaps), "missing": int(r.missing),
-                                 "size": sum(f.stat().st_size for f in (ETF_1M / f"ticker={safe_ticker(s)}").rglob("*.parquet"))})
+                                 "size": sum(f.stat().st_size for f in (ETF_1M / f"ticker={r.f}").rglob("*.parquet"))})
+        order = {s: i for i, s in enumerate(uni)}
+        rows.sort(key=lambda r: (order.get(r["symbol"], 10**6), r["dataset"]))
+        quotes_size = sum(f.stat().st_size for f in QUOTES.rglob("*.parquet")) if QUOTES.exists() else 0
         status_file = LOGS / "yahoo_intraday_status.json"
         status = json.loads(status_file.read_text()) if status_file.exists() else {}
-        return {"rows": rows, "yahoo_intraday": status.get("_last_run"), "generated": int(time.time())}
-    return cached("health", 300, build)
+        return {"rows": rows, "yahoo_intraday": status.get("_last_run"), "generated": int(time.time()),
+                "quotes_size": quotes_size, "symbols": len(uni)}
+    out = dict(cached("health", 600, build))
+    out["feed"] = feed_status()  # always fresh
+    return out
 
 
 @app.get("/api/health")
@@ -404,7 +456,7 @@ def api_portfolio():
         mv = v["qty"] * last if last is not None else None
         value += mv or 0
         avg = v["cost"] / v["qty"]
-        positions.append({"symbol": s, "name": NAMES.get(s, s), "qty": v["qty"], "avg_cost": avg, "price": last,
+        positions.append({"symbol": s, "name": px.get(s, {}).get("name", NAMES.get(s, s)), "qty": v["qty"], "avg_cost": avg, "price": last,
                           "value": mv, "pnl": None if mv is None else mv - v["cost"],
                           "pnl_pct": None if last is None else last / avg - 1,
                           "change_24h": px.get(s, {}).get("change_24h")})
@@ -427,8 +479,10 @@ def api_portfolio():
 def api_trade(t: Trade):
     sym = t.symbol.strip().upper() if not t.symbol.startswith("^") else t.symbol
     asset_type(sym)
-    if not is_tradable(sym):
-        raise HTTPException(400, f"{sym} is an index and can't be traded — use SPY or CSSPX.SW")
+    cur = prices().get(sym, {}).get("currency")
+    if not is_tradable(sym, cur):
+        raise HTTPException(400, f"{sym} is an index and can't be traded — use SPY or CSSPX.SW" if sym.startswith("^")
+                            else f"{sym} trades in {cur}; the paper portfolio only holds USD/USDT assets for now")
     price = t.price or prices().get(sym, {}).get("price")
     if price is None:
         raise HTTPException(400, f"no price available for {sym}")

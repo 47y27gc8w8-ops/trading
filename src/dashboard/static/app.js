@@ -6,7 +6,7 @@ const TZ_SHIFT = -new Date().getTimezoneOffset() * 60; // charts show local time
 const LC = window.LightweightCharts;
 const WATCH = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "SPY"];
 
-const state = { assets: [], bySym: {}, prevPrice: {}, view: null, timer: null, lastOk: 0, loadError: null };
+const state = { assets: [], bySym: {}, prevPrice: {}, view: null, timer: null, lastOk: 0, loadError: null, feed: null };
 
 /* ------------------------------------------------------------ helpers --- */
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -28,11 +28,18 @@ function decimals(v) {
   return a >= 10 ? 2 : a >= 1 ? 4 : a >= 0.01 ? 5 : 7;
 }
 const fmtPrice = (v) => v == null ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: decimals(v), maximumFractionDigits: decimals(v) });
-const money = (a, v) => v == null ? "—" : (a?.currency === "pts" ? "" : "$") + fmtPrice(v);
+const CUR = { USD: "$", USDT: "$", EUR: "€", GBP: "£", pts: "" };
+const money = (a, v) => {
+  if (v == null) return "—";
+  const c = a?.currency;
+  if (c == null || c in CUR) return (c == null ? "$" : CUR[c]) + fmtPrice(v);
+  return c + " " + fmtPrice(v);  // CHF, ...
+};
 const fmtUsd = (v, d = 2) => v == null ? "—" : (v < 0 ? "-" : "") + "$" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 const fmtSignedUsd = (v) => v == null ? "—" : Math.abs(v) < 0.005 ? "$0.00" : (v > 0 ? "+" : "") + fmtUsd(v);
 const fmtQty = (v) => v == null ? "—" : v.toLocaleString("en-US", { maximumFractionDigits: 8 });
-const fmtCompact = (v) => v == null ? "—" : "$" + Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(v);
+const fmtCompact = (v, cur = "$") => v == null ? "—" : cur + Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(v);
+const curPrefix = (a) => { const c = a?.currency; return c == null || c === "pts" ? "$" : c in CUR ? CUR[c] : c + " "; };
 const fmtPct = (v, d = 2) => v == null ? "—" : (Math.abs(v) < 0.5 * 10 ** -(d + 2) ? "" : v > 0 ? "+" : "") + (v * 100).toFixed(d) + "%";
 /* colour only where the job is "what moved" or "good or bad"; zero and missing stay grey */
 const tone = (v, eps = 1e-9) => v == null || Math.abs(v) < eps ? "muted" : v > 0 ? "up" : "down";
@@ -47,7 +54,8 @@ function ago(t) {
   return Math.round(s / 86400) + " d ago";
 }
 const base = (sym) => sym.replace(/USDT$/, "").replace(/^\^GSPC$/, "SPX").replace(/^\^/, "").replace(/\..*$/, "");
-const kindLabel = (a) => a.type === "crypto" ? "Crypto" : a.symbol.startsWith("^") ? "Index" : "ETF";
+const kindLabel = (a) => a.type === "crypto" ? "Crypto" : a.symbol.startsWith("^") ? "Index" : a.type === "stock" ? "Stock" : "ETF";
+const sessionWord = (a) => a.type === "crypto" ? "24 h" : a.market_state === "REGULAR" ? "today" : "session";
 const go = (sym) => (location.hash = "#/asset/" + encodeURIComponent(sym));
 
 /* assets are shown as neutral monograms: identity by letters, colour stays on the data */
@@ -76,7 +84,8 @@ function setLive(ok) {
   if (ok) state.lastOk = Date.now();
   const last = state.lastOk ? " · last update " + fmtClock(new Date(state.lastOk)) : "";
   $("#live-text").textContent = ok ? "Updated " + fmtClock() : "Offline, retrying" + last;
-  el.title = ok ? "Prices refresh every 15 s" : "The dashboard API did not answer";
+  const f = state.feed;
+  el.title = ok ? `Page refreshes every 15 s · quotes polled every ${f?.poll_seconds || 30} s${f?.generated ? " · last poll " + fmtClock(new Date(f.generated * 1000)) : ""}` : "The dashboard API did not answer";
 }
 
 /* ----------------------------------------------------------- data load --- */
@@ -86,6 +95,7 @@ async function loadOverview() {
     state.prevPrice = Object.fromEntries(state.assets.map((a) => [a.symbol, a.price]));
     state.assets = j.assets;
     state.bySym = Object.fromEntries(j.assets.map((a) => [a.symbol, a]));
+    state.feed = j.feed;
     state.loadError = null;
     setLive(true);
   } catch (e) { state.loadError = e.message; setLive(false); }
@@ -166,16 +176,18 @@ const lineSeries = (chart, p) => chart.addSeries(LC.LineSeries, {
 });
 
 /* ============================================================ OVERVIEW === */
-const sortState = { crypto: { key: "mcap", asc: true }, etf: { key: "mcap", asc: true } };
+const sortState = { crypto: { key: "mcap", asc: true }, etf: { key: "mcap", asc: true }, stock: { key: "mcap", asc: true } };
+const TABLE_LIMIT = { crypto: 25, etf: 25, stock: 50 };
+const showAll = { crypto: false, etf: false, stock: false };
 
 function assetTable(kind, assets) {
   const s = sortState[kind], crypto = kind === "crypto";
   const cols = [
-    ["mcap", "#", "rank hide-sm"], ["name", "Asset", "l"], ["price", "Price"], ["change_24h", crypto ? "24h" : "Session", "hide-sm"], ["change_7d", "7d", "hide-sm"],
+    ["mcap", kind === "etf" ? "#" : "Rank", "rank hide-sm"], ["name", "Asset", "l"], ["price", "Price"], ["change_24h", crypto ? "24h" : "Session", "hide-sm"], ["change_7d", "7d", "hide-sm"],
     ["range", crypto ? "24h range" : "Day range", "hide-md"], ["volume_24h", crypto ? "Volume 24h" : "Volume (day)", "hide-sm"],
-    ["spark", crypto ? "Last 7 days" : "Last 60 days", "hide-md"], ["time", "Updated", "hide-lg"],
+    ["spark", crypto ? "Last 7 days" : "Last 60 sessions", "hide-md"], ["time", "Updated", "hide-lg"],
   ];
-  const rows = assets.map((a, i) => ({ ...a, mcap: i }));
+  let rows = assets.map((a, i) => ({ ...a, mcap: i }));
   if (s.key !== "mcap" || !s.asc) {
     rows.sort((x, y) => {
       let a = x[s.key], b = y[s.key];
@@ -184,6 +196,9 @@ function assetTable(kind, assets) {
       return s.asc ? a - b : b - a;
     });
   }
+  const total = rows.length, cut = !showAll[kind] && total > TABLE_LIMIT[kind];
+  if (cut) rows = rows.slice(0, TABLE_LIMIT[kind]);
+  const more = total > TABLE_LIMIT[kind] ? `<div class="note" style="text-align:center"><button class="linkbtn" data-more="${kind}">${cut ? `Show all ${total}` : `Show top ${TABLE_LIMIT[kind]} only`}</button></div>` : "";
   return `<div class="table-wrap"><table data-kind="${kind}"><thead><tr>${cols.map(([k, label, c]) => {
     const sortable = !["range", "spark"].includes(k);
     const sorted = s.key === k && !(k === "mcap" && s.asc);
@@ -197,38 +212,40 @@ function assetTable(kind, assets) {
       return `<tr class="click" data-sym="${esc(a.symbol)}" tabindex="0">
         <td class="rank num hide-sm">${a.mcap + 1}</td>
         <td class="l"><div class="asset-cell">${icon(a.symbol)}<div style="min-width:0">
-          <div class="nm">${esc(a.name)}${a.symbol.startsWith("^") ? '<span class="tag">index</span>' : ""}</div>
+          <div class="nm">${esc(a.name)}${a.symbol.startsWith("^") ? '<span class="tag">index</span>' : ""}${a.market_state === "REGULAR" && a.type !== "crypto" ? '<span class="tag">open</span>' : ""}</div>
           <div class="sy"><span class="hide-sm">${esc(a.symbol)}</span><span class="m-sub num">${esc(base(a.symbol))} · 7d ${fmtPct(a.change_7d)}</span></div>
         </div></div></td>
         <td class="num ${flash}">${a.price == null ? '<span class="muted">—</span>' : money(a, a.price)}<span class="m-sub ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></td>
         <td class="num hide-sm ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</td>
         <td class="num hide-sm">${fmtPct(a.change_7d)}</td>
         <td class="hide-md">${a.price == null ? '<span class="muted">—</span>' : `<span class="range num">${fmtPrice(a.low_24h)}<span class="track"><i style="left:${pos}%"></i></span>${fmtPrice(a.high_24h)}</span>`}</td>
-        <td class="num hide-sm">${vol == null ? '<span class="muted">—</span>' : fmtCompact(vol)}</td>
+        <td class="num hide-sm">${vol == null ? '<span class="muted">—</span>' : fmtCompact(vol, curPrefix(a))}</td>
         <td class="hide-md">${sparkline(a.spark)}</td>
         <td class="muted hide-lg">${a.time ? ago(a.time) : "—"}</td>
       </tr>`;
-    }).join("")}</tbody></table></div>`;
+    }).join("")}</tbody></table></div>${more}`;
 }
 
-function moversList(assets) {
-  const rows = assets.filter((a) => a.change_24h != null).sort((x, y) => y.change_24h - x.change_24h);
+function moversList(assets, n = 10) {
+  let rows = assets.filter((a) => a.change_24h != null).sort((x, y) => y.change_24h - x.change_24h);
+  const total = rows.length;
+  if (rows.length > 2 * n) rows = rows.slice(0, n).concat(rows.slice(-n));
   const max = Math.max(0.001, ...rows.map((a) => Math.abs(a.change_24h)));
   const step = [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 1].find((x) => x >= max) || max;
   return {
     html: `<ol>${rows.map((a) => {
       const w = (Math.abs(a.change_24h) / step) * 50;
-      return `<li class="mover" data-sym="${esc(a.symbol)}" tabindex="0" title="${esc(a.name)} · ${a.type === "crypto" ? "24 h" : "last session"}">
+      return `<li class="mover" data-sym="${esc(a.symbol)}" tabindex="0" title="${esc(a.name)} · ${kindLabel(a)} · ${sessionWord(a)}">
         <span class="s">${esc(base(a.symbol))}</span>
         <span class="track"><span class="bar ${a.change_24h >= 0 ? "up" : "down"}" style="width:${w.toFixed(2)}%"></span></span>
         <span class="v num ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></li>`;
     }).join("")}</ol>
     <div class="axis" aria-hidden="true"><i></i><span class="num"><b style="font-weight:400">${fmtPct(-step, 0)}</b><b style="font-weight:400">0</b><b style="font-weight:400">${fmtPct(step, 0)}</b></span><i></i></div>`,
-    n: rows.length,
+    n: total,
   };
 }
 
-function overviewFinding(crypto, etf) {
+function overviewFinding(crypto, etf, stock = []) {
   const up = crypto.filter((a) => (a.change_24h ?? 0) > 0).length;
   const known = crypto.filter((a) => a.change_24h != null);
   const parts = [];
@@ -244,6 +261,12 @@ function overviewFinding(crypto, etf) {
     if (down === e.length) parts.push(`every ETF and index fell on the last session, ${esc(base(worst.symbol))} most at <span class="num down">${fmtPct(worst.change_24h)}</span>`);
     else if (down === 0) parts.push(`every ETF and index rose on the last session, ${esc(base(bestE.symbol))} most at <span class="num up">${fmtPct(bestE.change_24h)}</span>`);
     else parts.push(`${down} of ${e.length} ETFs and indices fell on the last session`);
+  }
+  const st = stock.filter((a) => a.change_24h != null);
+  if (st.length) {
+    const up = st.filter((a) => a.change_24h > 0).length;
+    const best = st.reduce((m, a) => (a.change_24h > m.change_24h ? a : m));
+    parts.push(`<b>${up} of ${st.length}</b> stocks up on the ${st.some((a) => a.market_state === "REGULAR") ? "day so far" : "last session"}, ${esc(base(best.symbol))} best at <span class="num ${tone(best.change_24h)}">${fmtPct(best.change_24h)}</span>`);
   }
   return parts.length ? parts.join("; ") + "." : "Waiting for the first prices from the collectors.";
 }
@@ -271,14 +294,17 @@ const overviewView = {
           <div id="movers"></div>
         </section>
       </div>
-      <section class="panel mb"><div class="panel-head"><h2>Crypto</h2><span class="sub">Binance spot · USDT pairs · live 1 m bars</span></div><div id="t-crypto"></div></section>
-      <section class="panel"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance · daily, plus 1 m bars collected after the US close</span></div><div id="t-etf"></div></section>`;
+      <section class="panel mb"><div class="panel-head"><h2>Crypto</h2><span class="sub">Binance spot · USDT pairs · by market cap · live 1 m bars, quotes every 30 s</span></div><div id="t-crypto"></div></section>
+      <section class="panel mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance · quotes every 30 s · 1 m bars hourly</span></div><div id="t-etf"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap · Yahoo Finance, quotes every 30 s</span></div><div id="t-stock"></div></section>`;
     $("#watch").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b || b.dataset.sym === this.watch) return;
       this.watch = b.dataset.sym; localStorage.setItem("watch", this.watch);
       this.renderWatch(); this.loadLead();
     });
     el.addEventListener("click", (e) => {
+      const mb = e.target.closest("button[data-more]");
+      if (mb) { showAll[mb.dataset.more] = !showAll[mb.dataset.more]; state.prevPrice = {}; this.renderTables(); return; }
       const r = e.target.closest(".mover[data-sym], tr[data-sym]"); if (r) go(r.dataset.sym);
       const th = e.target.closest("th.sortable"); if (th) this.sort(th);
     });
@@ -301,7 +327,7 @@ const overviewView = {
   leadSpec(a) {
     return a.type === "crypto"
       ? { tf: "1h", limit: 168, what: "Last 7 days · hourly closes · USDT" }
-      : { tf: "1d", limit: 126, what: `Last 6 months · daily closes · ${a.currency === "pts" ? "points" : "USD"}` };
+      : { tf: "1d", limit: 126, what: `Last 6 months · daily closes · ${a.currency === "pts" ? "points" : a.currency || "USD"}` };
   },
   renderWatch() {
     const list = WATCH.map((s) => state.bySym[s]).filter(Boolean);
@@ -309,7 +335,7 @@ const overviewView = {
       <button role="tab" aria-selected="${a.symbol === this.watch}" class="${a.symbol === this.watch ? "on" : ""}" data-sym="${esc(a.symbol)}">
         <span class="k">${esc(a.name)}</span>
         <span class="v num">${money(a, a.price)}</span>
-        <span class="d num ${tone(a.change_24h)}">${fmtPct(a.change_24h)} <span class="muted">${a.type === "crypto" ? "24 h" : "session"}</span></span>
+        <span class="d num ${tone(a.change_24h)}">${fmtPct(a.change_24h)} <span class="muted">${sessionWord(a)}</span></span>
       </button>`).join("");
     const a = state.bySym[this.watch];
     $("#lead-what").textContent = this.leadSpec(a).what;
@@ -319,16 +345,17 @@ const overviewView = {
   render() {
     const crypto = state.assets.filter((a) => a.type === "crypto");
     const etf = state.assets.filter((a) => a.type === "etf");
-    $("#ov-lede").innerHTML = overviewFinding(crypto, etf);
+    $("#ov-lede").innerHTML = overviewFinding(crypto, etf, state.assets.filter((a) => a.type === "stock"));
     this.renderWatch();
     const m = moversList(state.assets);
     $("#movers").innerHTML = m.html;
-    $("#movers-sub").textContent = `${m.n} assets · ETFs by last session`;
+    $("#movers-sub").textContent = `top and bottom 10 of ${m.n} · stocks/ETFs by session`;
     this.renderTables();
   },
   renderTables() {
     $("#t-crypto").innerHTML = assetTable("crypto", state.assets.filter((a) => a.type === "crypto"));
     $("#t-etf").innerHTML = assetTable("etf", state.assets.filter((a) => a.type === "etf"));
+    $("#t-stock").innerHTML = assetTable("stock", state.assets.filter((a) => a.type === "stock"));
   },
   async loadLead() {
     const sym = this.watch, a = state.bySym[sym], spec = this.leadSpec(a);
@@ -384,7 +411,7 @@ const assetView = {
       <a class="back" href="#/">← Markets</a>
       <div class="title-row">
         <div class="asset-title">${icon(sym, true)}
-          <div><h1>${esc(a.name)}</h1><div class="sy">${esc(sym)} · ${crypto ? "Binance spot" : "Yahoo Finance"} · ${kindLabel(a)}</div></div>
+          <div><h1>${esc(a.name)}</h1><div class="sy">${esc(sym)} · ${crypto ? "Binance spot" : esc(a.exchange || "Yahoo Finance")} · ${kindLabel(a)}${a.currency && a.currency !== "pts" ? " · " + esc(a.currency) : ""}</div></div>
         </div>
         <div class="quote"><span class="px num" id="a-price"></span><span class="chg num" id="a-chg"></span></div>
       </div>
@@ -398,7 +425,7 @@ const assetView = {
         </section>
         <div class="stack">
           <section class="panel"><div class="panel-head"><h2>${crypto ? "Last 24 hours" : "Last session"}</h2><span class="sub" id="a-when"></span></div><div class="stats" id="stats"></div></section>
-          ${a.tradable ? `<section class="panel" id="trade-panel"></section>` : `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="note" style="border:0;margin:0">An index can't be bought. Use <a href="#/asset/SPY" style="text-decoration:underline">SPY</a> or <a href="#/asset/CSSPX.SW" style="text-decoration:underline">CSSPX.SW</a> for S&amp;P 500 exposure.</p></section>`}
+          ${a.tradable ? `<section class="panel" id="trade-panel"></section>` : !sym.startsWith("^") ? `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="note" style="border:0;margin:0">This asset trades in ${esc(a.currency)}. The paper portfolio is kept in USD, so only USD and USDT assets can be traded for now.</p></section>` : `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="note" style="border:0;margin:0">An index can't be bought. Use <a href="#/asset/SPY" style="text-decoration:underline">SPY</a> or <a href="#/asset/CSSPX.SW" style="text-decoration:underline">CSSPX.SW</a> for S&amp;P 500 exposure.</p></section>`}
         </div>
       </div>`;
     $("#tfs").addEventListener("click", (e) => {
@@ -415,12 +442,15 @@ const assetView = {
   renderHeader() {
     const a = state.bySym[this.sym] || this.a, crypto = a.type === "crypto";
     $("#a-price").textContent = money(a, a.price);
-    $("#a-chg").innerHTML = `<span class="${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span> <span class="muted">${crypto ? "24 h" : "session"}</span>`;
-    $("#a-when").textContent = a.time ? "last bar " + (Date.now() / 1000 - a.time < 86400 ? new Date(a.time * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : fmtDate(a.time)) : "";
+    $("#a-chg").innerHTML = `<span class="${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span> <span class="muted">${sessionWord(a)}</span>`;
+    $("#a-when").textContent = a.time ? (crypto ? "last trade " : a.market_state === "REGULAR" ? "market open · last trade " : "market closed · last trade ") + (Date.now() / 1000 - a.time < 86400 ? new Date(a.time * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : fmtDate(a.time)) : "";
     const st = [
       ["High", money(a, a.high_24h)], ["Low", money(a, a.low_24h)],
-      ["Change 7 d", fmtPct(a.change_7d)], ["Volume", a.symbol.startsWith("^") ? '<span class="muted">—</span>' : fmtCompact(a.volume_24h)],
+      ["Change 7 d", fmtPct(a.change_7d)], ["Volume", a.symbol.startsWith("^") ? '<span class="muted">—</span>' : fmtCompact(a.volume_24h, curPrefix(a))],
     ];
+    if (a.bid && a.ask) st.push(["Bid", money(a, a.bid)], ["Ask", money(a, a.ask)]);
+    if (a.market_cap) st.push(["Market cap", fmtCompact(a.market_cap, curPrefix(a))]);
+    if (a.type === "crypto" && a.rank) st.push(["Rank", "#" + a.rank]);
     $("#stats").innerHTML = st.map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v num">${v}</div></div>`).join("");
   },
   buildChart() {
@@ -467,7 +497,7 @@ const assetView = {
       const n = this.bars.length;
       const show = matchMedia("(max-width: 719px)").matches ? 70 : 160;
       if (n) this.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - show), to: n + 4 });
-      this.showEmpty(n ? "" : `No ${tf} bars for this asset yet.${this.a.type === "etf" ? " Yahoo keeps about 30 days of intraday bars; the collector stores them from setup onward." : ""}`);
+      this.showEmpty(n ? "" : `No ${tf} bars for this asset yet.${this.a.type !== "crypto" ? " Yahoo keeps about 30 days of intraday bars; the collector stores them from setup onward." : ""}`);
       if (!n) $("#legend").innerHTML = ""; else this.legend(null);
     } catch (e) { this.showEmpty(`Couldn't load ${tf} bars. ${e.message}`); }
   },
@@ -746,7 +776,7 @@ window.portfolioView = portfolioView;
 /* ================================================================ DATA === */
 const dataView = {
   async mount(el) {
-    el.innerHTML = `<div class="title-row"><div><h1>Data health</h1><p class="lede">Scanning the Parquet store… (cached for 5 min)</p></div></div>`;
+    el.innerHTML = `<div class="title-row"><div><h1>Data health</h1><p class="lede">Scanning the Parquet store… (cached for 10 min, the first scan takes about 10 s)</p></div></div>`;
     el.addEventListener("click", (e) => { const r = e.target.closest("tr[data-sym]"); if (r) go(r.dataset.sym); });
     el.addEventListener("keydown", (e) => { const r = e.target.closest("tr[data-sym]"); if (r && e.key === "Enter") go(r.dataset.sym); });
     await this.tick(el);
@@ -766,9 +796,14 @@ const dataView = {
     const feeds = h.rows.filter((r) => r.lag_min != null), live = feeds.filter((r) => r.lag_min < 5);
     const stale = feeds.filter((r) => r.lag_min >= 5);
     const yOk = yr && !yr.failed.length;
+    const fd = h.feed || {}, srcs = Object.entries(fd.sources || {});
+    const fresh = fd.generated && Date.now() / 1000 - fd.generated < 3 * (fd.poll_seconds || 30);
+    const srcOk = srcs.filter(([, v]) => !v.error && v.last_ok && Date.now() / 1000 - v.last_ok < 600);
+    const nQuotes = state.assets.filter((a) => a.fetched && Date.now() / 1000 - a.fetched < 120).length;
     const lede = [
       feeds.length ? `<b>${live.length} of ${feeds.length}</b> live crypto feeds under 5 min behind${stale.length ? `; behind: ${stale.map((r) => esc(base(r.symbol))).join(", ")}` : ""}` : "No live feeds found",
-      yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run",
+      yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${yr.failed.length > 8 ? yr.failed.length + " symbols" : esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run",
+      fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k, v]) => `${esc(k)} ${v.error ? '<span class="down">error</span>' : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>',
       `store scanned ${ago(h.generated)}`,
     ].join(" · ");
     el.innerHTML = `
@@ -776,15 +811,15 @@ const dataView = {
       <section class="panel kpis four" aria-label="Store totals">
         <div class="kpi"><div class="k">Rows stored</div><div class="v num">${rows.toLocaleString("en-US")}</div><div class="s">${h.rows.length} datasets</div></div>
         <div class="kpi"><div class="k">Size on disk</div><div class="v num">${mb(size)}</div><div class="s">Parquet, local</div></div>
-        <div class="kpi"><div class="k">Live crypto feeds</div><div class="v num">${live.length}<span class="muted" style="font-size:14px"> /${feeds.length}</span></div><div class="s">under 5 min behind</div></div>
-        <div class="kpi"><div class="k">Yahoo 1 m collector</div><div class="v ${yr ? (yOk ? "" : "down") : "muted"}">${yr ? (yOk ? "OK" : "Failed") : "Never run"}</div><div class="s">${yr ? "last run " + ago(Date.parse(yr.time) / 1000) + " · " : ""}daily 22:30 UTC</div></div>
+        <div class="kpi"><div class="k">Live quotes</div><div class="v num ${fresh ? "" : "down"}">${nQuotes}<span class="muted" style="font-size:14px"> /${h.symbols || state.assets.length}</span></div><div class="s">polled every ${fd.poll_seconds || 30} s · ${srcOk.length}/${srcs.length} sources OK · ${mb(h.quotes_size || 0)} snapshots</div></div>
+        <div class="kpi"><div class="k">Yahoo 1 m collector</div><div class="v ${yr ? (yOk ? "" : "down") : "muted"}">${yr ? (yOk ? "OK" : `${yr.failed.length} failed`) : "Never run"}</div><div class="s">${yr ? "last run " + ago(Date.parse(yr.time) / 1000) + " · " : ""}hourly on weekdays · ${live.length}/${feeds.length} crypto 1 m feeds live</div></div>
       </section>
       <section class="panel">
         <div class="panel-head"><h2>Datasets</h2><span class="sub">times in your local zone</span></div>
         <div class="scroll-frame table-wrap"><table><thead><tr><th class="l">Symbol</th><th class="l">Dataset</th><th>First bar</th><th>Last bar</th><th>Rows</th><th>Gaps</th><th>Missing bars</th><th class="l">Freshness</th><th>Size</th></tr></thead><tbody>
         ${h.rows.map((r) => `<tr class="click" data-sym="${esc(r.symbol)}" tabindex="0"><td class="l"><div class="asset-cell">${icon(r.symbol)}<span class="nm">${esc(r.symbol)}</span></div></td>
           <td class="l muted">${esc(r.dataset)}</td><td class="num">${r.first ? fmtDate(r.first) : "—"}</td>
-          <td class="num">${r.last ? (r.dataset === "etf 1d" ? fmtDate(r.last) : fmtDateTime(r.last)) : "—"}</td>
+          <td class="num">${r.last ? (r.dataset.endsWith(" 1d") ? fmtDate(r.last) : fmtDateTime(r.last)) : "—"}</td>
           <td class="num">${(r.rows || 0).toLocaleString("en-US")}</td><td class="num">${r.gaps ?? '<span class="muted">—</span>'}</td><td class="num">${r.missing != null ? r.missing.toLocaleString("en-US") : '<span class="muted">—</span>'}</td>
           <td class="l">${r.lag_min != null ? `<span class="pill ${r.lag_min < 5 ? "pos" : "neg"}">${r.lag_min < 5 ? "Live" : Math.round(r.lag_min) + " min behind"}</span>` : `<span class="muted">${r.last ? ago(r.last) : "—"}</span>`}</td>
           <td class="num muted">${r.size ? mb(r.size) : "—"}</td></tr>`).join("")}</tbody></table></div>

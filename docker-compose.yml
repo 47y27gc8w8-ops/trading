@@ -20,6 +20,22 @@ services:
     restart: unless-stopped
     stop_grace_period: 30s
 
+  # Quote snapshots for every symbol in config/symbols.yaml every 30 s (Binance, Yahoo, CoinGecko).
+  live-quotes:
+    <<: *base
+    command: python -m src.collectors.live_quotes
+    environment:
+      TZ: UTC
+      POLL_SECONDS: "30"
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:   # unhealthy if latest.json hasn't been rewritten for 2 minutes
+      test: ["CMD", "python", "-c", "import os,time,sys; sys.exit(time.time()-os.path.getmtime('/app/data/quotes/latest.json')>120)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   dashboard:
     <<: *base
     command: uvicorn src.dashboard.app:app --host 0.0.0.0 --port 3000 --workers 1 --no-access-log

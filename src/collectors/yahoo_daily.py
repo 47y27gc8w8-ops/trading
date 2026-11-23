@@ -16,7 +16,7 @@ from src.common.storage import etf_daily_path, load_config, merge_write, setup_l
 from src.common.yahoo import history, utc
 
 log = setup_logging("yahoo_daily")
-SLEEP_BETWEEN = 3
+SLEEP_BETWEEN = 1
 
 
 def normalise(df: pd.DataFrame) -> pd.DataFrame:
@@ -53,7 +53,8 @@ def update(ticker: str, full: bool) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tickers", nargs="*", default=load_config()["etf"])
+    cfg = load_config()
+    ap.add_argument("--tickers", nargs="*", default=cfg["etf"] + cfg.get("stock", []))
     ap.add_argument("--full", action="store_true", help="re-download full history")
     args = ap.parse_args()
     errors = 0
