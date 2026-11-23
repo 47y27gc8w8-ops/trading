@@ -155,6 +155,7 @@ class Poller:
         self.status: dict[str, dict] = {}
         self.cg: dict[str, dict] = {}
         self.cg_time = 0.0
+        self.cg_future = None
         self.buffer: dict[str, list[dict]] = {"binance": [], "yahoo": []}
         self.stop = threading.Event()
         self.pool = ThreadPoolExecutor(3)
@@ -176,10 +177,16 @@ class Poller:
         now = time.time()
         futs = {"binance": self.pool.submit(self._run, "binance", poll_binance, self.crypto, now),
                 "yahoo": self.pool.submit(self._run, "yahoo", poll_yahoo, list(self.yahoo_types), self.yahoo_types, now)}
-        if now - self.cg_time >= COINGECKO_EVERY:
-            cg = self._run("coingecko", poll_coingecko)
+        # CoinGecko runs in the background so a slow response never delays the 30 s cycle
+        if self.cg_future is None and now - self.cg_time >= COINGECKO_EVERY:
+            self.cg_future = self.pool.submit(self._run, "coingecko", poll_coingecko)
+        if self.cg_future is not None and self.cg_future.done():
+            cg = self.cg_future.result()
+            self.cg_future, self.cg_time = None, now
             if cg:
-                self.cg, self.cg_time = cg, now
+                self.cg = cg
+            elif not self.cg:
+                self.cg_time = now - COINGECKO_EVERY + 60  # nothing yet: retry in a minute
         for src, fut in futs.items():
             rows = fut.result() or []
             for r in rows:
