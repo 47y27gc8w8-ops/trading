@@ -11,7 +11,7 @@
   "params": {
     "lookback": 11,
     "mode": "max",
-    "hold_days": 1
+    "hold_days": 2
   },
   "space": {
     "lookback": {
@@ -33,36 +33,36 @@
     }
   },
   "champion": {
-    "id": 3,
+    "id": 19,
     "code": "cf309a96a6",
-    "fitness": 0.9893,
+    "fitness": 1.1365,
     "is": {
       "start": "2017-08-17",
       "end": "2023-12-31",
       "days": 2328,
-      "cagr": 0.2975,
-      "vol": 0.3106,
-      "sharpe": 0.9893,
-      "sortino": 0.9432,
-      "max_dd": -0.3891,
-      "calmar": 0.7644,
-      "total_return": 4.2644,
-      "avg_exposure": 0.1847,
-      "turnover_per_year": 68.6727
+      "cagr": 0.4331,
+      "vol": 0.378,
+      "sharpe": 1.1365,
+      "sortino": 1.1096,
+      "max_dd": -0.5074,
+      "calmar": 0.8536,
+      "total_return": 8.9249,
+      "avg_exposure": 0.2788,
+      "turnover_per_year": 47.6632
     },
     "oos": {
       "start": "2024-01-01",
       "end": "2026-11-22",
       "days": 1057,
-      "cagr": -0.0387,
-      "vol": 0.1961,
-      "sharpe": -0.1052,
-      "sortino": -0.0963,
-      "max_dd": -0.2791,
-      "calmar": -0.1387,
-      "total_return": -0.1081,
-      "avg_exposure": 0.1788,
-      "turnover_per_year": 69.754
+      "cagr": 0.0604,
+      "vol": 0.2402,
+      "sharpe": 0.3625,
+      "sortino": 0.3672,
+      "max_dd": -0.261,
+      "calmar": 0.2314,
+      "total_return": 0.1852,
+      "avg_exposure": 0.2744,
+      "turnover_per_year": 49.035
     },
     "bench_is": {
       "start": "2017-08-17",
