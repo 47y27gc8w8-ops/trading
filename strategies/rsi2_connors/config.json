@@ -11,9 +11,9 @@
   "fitness": "sharpe",
   "min_improvement": 0.02,
   "params": {
-    "rsi_n": 2,
-    "entry": 10,
-    "trend_sma": 200,
+    "rsi_n": 3,
+    "entry": 14,
+    "trend_sma": 180,
     "exit_sma": 9
   },
   "space": {
@@ -39,36 +39,36 @@
     }
   },
   "champion": {
-    "id": 8,
+    "id": 62,
     "code": "8074937587",
-    "fitness": 0.7506,
+    "fitness": 0.8945,
     "is": {
       "start": "1999-03-10",
       "end": "2015-12-31",
       "days": 4232,
-      "cagr": 0.0565,
-      "vol": 0.0772,
-      "sharpe": 0.7506,
-      "sortino": 0.4756,
-      "max_dd": -0.1428,
-      "calmar": 0.396,
-      "total_return": 1.5186,
-      "avg_exposure": 0.1371,
-      "turnover_per_year": 13.3979
+      "cagr": 0.0532,
+      "vol": 0.0599,
+      "sharpe": 0.8945,
+      "sortino": 0.4554,
+      "max_dd": -0.0992,
+      "calmar": 0.536,
+      "total_return": 1.3874,
+      "avg_exposure": 0.0779,
+      "turnover_per_year": 7.5624
     },
     "oos": {
       "start": "2016-01-04",
       "end": "2026-11-20",
       "days": 2738,
-      "cagr": 0.0416,
-      "vol": 0.0799,
-      "sharpe": 0.5498,
-      "sortino": 0.3571,
-      "max_dd": -0.096,
-      "calmar": 0.433,
-      "total_return": 0.5568,
-      "avg_exposure": 0.1665,
-      "turnover_per_year": 15.6925
+      "cagr": 0.0352,
+      "vol": 0.0693,
+      "sharpe": 0.5344,
+      "sortino": 0.2801,
+      "max_dd": -0.0886,
+      "calmar": 0.3979,
+      "total_return": 0.4569,
+      "avg_exposure": 0.1081,
+      "turnover_per_year": 9.8481
     },
     "bench_is": {
       "start": "1999-03-10",
