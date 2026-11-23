@@ -11,8 +11,8 @@
   "fitness": "sharpe",
   "min_improvement": 0.02,
   "params": {
-    "fast": 50,
-    "slow": 200
+    "fast": 45,
+    "slow": 140
   },
   "space": {
     "fast": {
@@ -27,36 +27,36 @@
     }
   },
   "champion": {
-    "id": 1,
+    "id": 42,
     "code": "8c3a0a2b31",
-    "fitness": 0.5671,
+    "fitness": 0.644,
     "is": {
       "start": "1999-03-10",
       "end": "2015-12-31",
       "days": 4232,
-      "cagr": 0.0722,
-      "vol": 0.1403,
-      "sharpe": 0.5671,
-      "sortino": 0.6266,
-      "max_dd": -0.2397,
-      "calmar": 0.3013,
-      "total_return": 2.2246,
-      "avg_exposure": 0.6459,
-      "turnover_per_year": 1.1909
+      "cagr": 0.0823,
+      "vol": 0.1375,
+      "sharpe": 0.644,
+      "sortino": 0.7319,
+      "max_dd": -0.3008,
+      "calmar": 0.2736,
+      "total_return": 2.7736,
+      "avg_exposure": 0.6456,
+      "turnover_per_year": 1.5482
     },
     "oos": {
       "start": "2016-01-04",
       "end": "2026-11-20",
       "days": 2738,
-      "cagr": 0.1192,
-      "vol": 0.1679,
-      "sharpe": 0.7554,
-      "sortino": 0.8312,
+      "cagr": 0.1103,
+      "vol": 0.1577,
+      "sharpe": 0.743,
+      "sortino": 0.7977,
       "max_dd": -0.3086,
-      "calmar": 0.3864,
-      "total_return": 2.4009,
-      "avg_exposure": 0.8318,
-      "turnover_per_year": 0.9204
+      "calmar": 0.3574,
+      "total_return": 2.1163,
+      "avg_exposure": 0.8112,
+      "turnover_per_year": 1.3346
     },
     "bench_is": {
       "start": "1999-03-10",
