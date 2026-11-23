@@ -1,15 +1,86 @@
 {
   "asset_class": "etf",
-  "universe": ["SPY", "QQQ"],
+  "universe": [
+    "SPY",
+    "QQQ"
+  ],
   "start": "1999-03-10",
   "oos_start": "2016-01-01",
   "periods_per_year": 252,
   "cost_bps": 5,
   "fitness": "sharpe",
   "min_improvement": 0.02,
-  "params": {"fast": 50, "slow": 200},
+  "params": {
+    "fast": 50,
+    "slow": 200
+  },
   "space": {
-    "fast": {"min": 5, "max": 150, "step": 5},
-    "slow": {"min": 30, "max": 400, "step": 10}
+    "fast": {
+      "min": 5,
+      "max": 150,
+      "step": 5
+    },
+    "slow": {
+      "min": 30,
+      "max": 400,
+      "step": 10
+    }
+  },
+  "champion": {
+    "id": 1,
+    "code": "8c3a0a2b31",
+    "fitness": 0.5671,
+    "is": {
+      "start": "1999-03-10",
+      "end": "2015-12-31",
+      "days": 4232,
+      "cagr": 0.0722,
+      "vol": 0.1403,
+      "sharpe": 0.5671,
+      "sortino": 0.6266,
+      "max_dd": -0.2397,
+      "calmar": 0.3013,
+      "total_return": 2.2246,
+      "avg_exposure": 0.6459,
+      "turnover_per_year": 1.1909
+    },
+    "oos": {
+      "start": "2016-01-04",
+      "end": "2026-11-20",
+      "days": 2738,
+      "cagr": 0.1192,
+      "vol": 0.1679,
+      "sharpe": 0.7554,
+      "sortino": 0.8312,
+      "max_dd": -0.3086,
+      "calmar": 0.3864,
+      "total_return": 2.4009,
+      "avg_exposure": 0.8318,
+      "turnover_per_year": 0.9204
+    },
+    "bench_is": {
+      "start": "1999-03-10",
+      "end": "2015-12-31",
+      "days": 4232,
+      "cagr": 0.0541,
+      "vol": 0.2369,
+      "sharpe": 0.3405,
+      "sortino": 0.4659,
+      "max_dd": -0.6887,
+      "calmar": 0.0785,
+      "total_return": 1.4217
+    },
+    "bench_oos": {
+      "start": "2016-01-04",
+      "end": "2026-11-20",
+      "days": 2738,
+      "cagr": 0.1577,
+      "vol": 0.1974,
+      "sharpe": 0.8409,
+      "sortino": 1.0433,
+      "max_dd": -0.3086,
+      "calmar": 0.5111,
+      "total_return": 3.9096
+    }
   }
 }
