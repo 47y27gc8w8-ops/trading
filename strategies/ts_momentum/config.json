@@ -1,16 +1,105 @@
 {
   "asset_class": "crypto",
-  "universe": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "HYPEUSDT", "ZECUSDT",
-               "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT"],
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "TRXUSDT",
+    "HYPEUSDT",
+    "ZECUSDT",
+    "DOGEUSDT",
+    "LINKUSDT",
+    "ADAUSDT",
+    "XLMUSDT",
+    "BCHUSDT",
+    "NEARUSDT",
+    "LTCUSDT",
+    "AVAXUSDT"
+  ],
   "oos_start": "2024-01-01",
   "periods_per_year": 365,
   "cost_bps": 15,
   "fitness": "sharpe",
   "min_improvement": 0.02,
-  "params": {"lookback": 90, "vol_window": 30, "target_vol": 0.6},
+  "params": {
+    "lookback": 111,
+    "vol_window": 60,
+    "target_vol": 0.4
+  },
   "space": {
-    "lookback": {"min": 7, "max": 365, "step": 7},
-    "vol_window": {"min": 10, "max": 120, "step": 5},
-    "target_vol": {"min": 0.2, "max": 1.5, "step": 0.1}
+    "lookback": {
+      "min": 7,
+      "max": 365,
+      "step": 7
+    },
+    "vol_window": {
+      "min": 10,
+      "max": 120,
+      "step": 5
+    },
+    "target_vol": {
+      "min": 0.2,
+      "max": 1.5,
+      "step": 0.1
+    }
+  },
+  "champion": {
+    "id": 15,
+    "code": "ac8dfdf3d7",
+    "fitness": 1.331,
+    "is": {
+      "start": "2017-08-17",
+      "end": "2023-12-31",
+      "days": 2328,
+      "cagr": 0.2665,
+      "vol": 0.1913,
+      "sharpe": 1.331,
+      "sortino": 1.5594,
+      "max_dd": -0.2116,
+      "calmar": 1.2596,
+      "total_return": 3.5123,
+      "avg_exposure": 0.1924,
+      "turnover_per_year": 7.2658
+    },
+    "oos": {
+      "start": "2024-01-01",
+      "end": "2026-11-22",
+      "days": 1057,
+      "cagr": 0.0888,
+      "vol": 0.2105,
+      "sharpe": 0.5098,
+      "sortino": 0.6117,
+      "max_dd": -0.2443,
+      "calmar": 0.3635,
+      "total_return": 0.2794,
+      "avg_exposure": 0.289,
+      "turnover_per_year": 9.194
+    },
+    "bench_is": {
+      "start": "2017-08-17",
+      "end": "2023-12-31",
+      "days": 2328,
+      "cagr": 0.6859,
+      "vol": 0.8763,
+      "sharpe": 1.0432,
+      "sortino": 1.3615,
+      "max_dd": -0.8629,
+      "calmar": 0.7948,
+      "total_return": 26.9702
+    },
+    "bench_oos": {
+      "start": "2024-01-01",
+      "end": "2026-11-22",
+      "days": 1057,
+      "cagr": 0.1543,
+      "vol": 0.6203,
+      "sharpe": 0.5422,
+      "sortino": 0.786,
+      "max_dd": -0.5469,
+      "calmar": 0.2821,
+      "total_return": 0.5152
+    }
   }
 }
