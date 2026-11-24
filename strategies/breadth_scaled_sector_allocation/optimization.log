@@ -1,0 +1,104 @@
+[2026-11-24T22:13:57Z] note: setup: 11 Select Sector SPDRs (XLB XLC XLE XLF XLI XLK XLP XLRE XLU XLV XLY), Yahoo daily adjusted, data 1998-12-22..2026-11-23 (XLRE 2015-10, XLC 2018-06). IS 2000-07-01..2016-01-01, OOS 2016-01-01..2026-11-23 (end frozen). One portfolio, 10,000 USD, weights 1/N per eligible sector, fee 0.05%/side, slippage 0.03%/fill.
+[2026-11-24T22:13:57Z] note: assumptions: (1) point-in-time universe: an ETF counts toward breadth once listed and SMA(n) exists (spec: no backfill before listing); (2) cash at 0% yield, the spec's labeled conservative scenario; (3) whole sleeve with target weights, no risk_fraction sizing (user's 100%-equity choice for library specs); (4) adjusted closes used for signals and fills; (5) monthly resize without tolerance band (spec has none); (6) one trade = one holding from first buy to full close, trims/additions included in its P&L.
+[2026-11-24T22:13:57Z] note: backtest.py adapted from template: strategy block (CONFIG/PARAMS/SPACE, eligibility close>SMA(n)) plus machinery change: run() calls a new _simulate_portfolio instead of per-symbol _simulate, because breadth B is cross-sectional and weights are B/count(eligible)=1/N. Implements month-end decisions on complete months, next-open fills, sells before buys, cash-scaled buys, hard stop from weighted-average cost never loosened, gap stops at open, max_candles from entry bar, no re-entry on the exit bar, skip rebalance on a missing member bar. load_bars/metrics unchanged.
+[2026-11-24T22:13:57Z] note: sanity check: defaults (n200, stop15, max252) IS 6.07%/yr, 163 trades, DD -19.3%, PF 2.86, win 52%; OOS 7.48%/yr, 154 trades, DD -14.5%. Verified: all entries on a month's first bar, max_bars exits at exactly 252 bars, stops fill at E*0.85 or at a gap-down open (XLV 2002-07-11), XLE close 24.16 > SMA200 21.21 on 2008-05-30 recomputed independently, equity end matches summed trade P&L (diff = exit costs of open positions). ~0.36 s per backtest.
+[2026-11-24T22:13:57Z] note: plan: base run only on the 11-ETF universe. Screening, broad basket and per-symbol runs skipped: breadth is cross-sectional, a single-symbol run degenerates into a different strategy (SMA filter + stop), and swapping in other universes would change the spec. Grid 7,182 sets fits the budget, so the optimizer should search it exhaustively.
+[2026-11-24T22:14:25Z] note: run start (first run): symbols XLB,XLC,XLE,XLF,XLI,XLK,XLP,XLRE,XLU,XLV,XLY, backtest.py version f869807cf2, budget 6.0 h, settings {"min_trades_is": 20, "min_trades_oos": 5, "balanced_min_win_rate": 45.0, "safe_max_big_losses": 1, "safe_min_profit_factor": 1.3, "safe_min_yearly_pct": 2.0, "min_improvement": 0.05, "min_oos_efficiency": 0.25, "robust_min": 0.6, "patience": 500, "explore_every": 10, "checkpoint_minutes": 60.0, "max_range_extensions": 3, "seed": 1}, grid 7,182 combinations over ['n', 'stop_loss_pct', 'max_candles']
+[2026-11-24T22:14:27Z] iter=1 params={"max_candles": 252, "n": 190, "stop_loss_pct": 15.0}
+  in-sample: net=14,070.48 (5.8%/yr), win_rate=50.9%, avg_win=266.79, avg_loss=-102.97, max_dd=-3,351.43 (-21.9%), largest_loss=-428.27 (-1.6%), trades=165, pf=2.69
+  out-of-sample: net=12,260.33 (7.6%/yr), win_rate=50.7%, avg_win=240.63, avg_loss=-83.57, max_dd=-2,530.91 (-13.5%), largest_loss=-286.09 (-1.4%), trades=152, pf=2.96, efficiency=1.309
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: no (2 unusually bad trades (> 1))
+  decision: recorded as robustness check 1/6 for candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 2/6
+[2026-11-24T22:14:27Z] iter=2 params={"max_candles": 252, "n": 210, "stop_loss_pct": 15.0}
+  in-sample: net=14,246.96 (5.9%/yr), win_rate=54.4%, avg_win=250.23, avg_loss=-103.06, max_dd=-2,875.42 (-18.1%), largest_loss=-431.69 (-1.6%), trades=160, pf=2.89
+  out-of-sample: net=11,524.84 (7.3%/yr), win_rate=49.0%, avg_win=247.17, avg_loss=-85.77, max_dd=-2,417.68 (-13.3%), largest_loss=-280.08 (-1.4%), trades=149, pf=2.77, efficiency=1.241
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: no (2 unusually bad trades (> 1))
+  decision: recorded as robustness check 2/6 for candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 3/6
+[2026-11-24T22:14:28Z] iter=3 params={"max_candles": 252, "n": 200, "stop_loss_pct": 14}
+  in-sample: net=15,094.43 (6.1%/yr), win_rate=52.4%, avg_win=267.51, avg_loss=-101.43, max_dd=-3,037.35 (-19.4%), largest_loss=-415.11 (-1.5%), trades=164, pf=2.91
+  out-of-sample: net=11,964.70 (7.5%/yr), win_rate=49.4%, avg_win=244.55, avg_loss=-84.88, max_dd=-2,675.55 (-14.2%), largest_loss=-284.54 (-1.4%), trades=154, pf=2.81, efficiency=1.225
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: first eligible candidate
+  decision: recorded as robustness check 3/6 for candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 4/6
+[2026-11-24T22:14:29Z] iter=4 params={"max_candles": 252, "n": 200, "stop_loss_pct": 16}
+  in-sample: net=14,991.19 (6.1%/yr), win_rate=52.1%, avg_win=271.63, avg_loss=-103.82, max_dd=-3,216.05 (-19.3%), largest_loss=-475.79 (-1.7%), trades=163, pf=2.85
+  out-of-sample: net=11,918.57 (7.5%/yr), win_rate=49.4%, avg_win=244.16, avg_loss=-85.10, max_dd=-2,741.05 (-14.5%), largest_loss=-301.22 (-1.6%), trades=154, pf=2.80, efficiency=1.228
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: no (2 unusually bad trades (> 1))
+  decision: recorded as robustness check 4/6 for candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 5/6
+[2026-11-24T22:14:30Z] iter=5 params={"max_candles": 231, "n": 200, "stop_loss_pct": 15.0}
+  in-sample: net=12,873.12 (5.5%/yr), win_rate=50.6%, avg_win=257.05, avg_loss=-111.65, max_dd=-3,259.76 (-21.5%), largest_loss=-382.46 (-1.5%), trades=172, pf=2.36
+  out-of-sample: net=9,907.81 (6.5%/yr), win_rate=47.0%, avg_win=223.65, avg_loss=-85.65, max_dd=-2,816.01 (-15.2%), largest_loss=-287.24 (-1.5%), trades=166, pf=2.31, efficiency=1.189
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: first eligible candidate
+  decision: recorded as robustness check 5/6 for candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 6/6
+[2026-11-24T22:14:31Z] iter=6 params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  in-sample: net=13,032.96 (5.5%/yr), win_rate=52.2%, avg_win=250.67, avg_loss=-100.29, max_dd=-2,835.93 (-19.4%), largest_loss=-427.99 (-1.7%), trades=157, pf=2.73
+  out-of-sample: net=9,945.21 (6.5%/yr), win_rate=46.7%, avg_win=230.77, avg_loss=-79.50, max_dd=-2,637.47 (-14.8%), largest_loss=-264.09 (-1.4%), trades=152, pf=2.54, efficiency=1.184
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: first eligible candidate
+  decision: recorded as robustness check 6/6 for candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  next: back to the candidate params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+[2026-11-24T22:14:25Z] iter=7 params={"max_candles": 252, "n": 200, "stop_loss_pct": 15.0}
+  in-sample: net=14,920.59 (6.1%/yr), win_rate=52.1%, avg_win=269.76, avg_loss=-102.68, max_dd=-3,111.30 (-19.3%), largest_loss=-443.23 (-1.6%), trades=163, pf=2.86
+  out-of-sample: net=11,933.21 (7.5%/yr), win_rate=49.4%, avg_win=244.25, avg_loss=-85.00, max_dd=-2,731.03 (-14.5%), largest_loss=-284.27 (-1.4%), trades=154, pf=2.80, efficiency=1.232
+  robustness: 6/6 one-step neighbours profitable in-sample (worst neighbour net 12,873.12)
+  vs best: max-income: first eligible candidate; balanced: first eligible candidate; safe-starter: no (2 unusually bad trades (> 1))
+  decision: kept as new best for max-income, balanced (provisional: the variant file is written at the next checkpoint if nothing better turns up first); one parameter set wins several profiles
+  next: this robustness neighbour beat a profile best (max-income, balanced, safe-starter), check it as a candidate
+[2026-11-24T22:14:31Z] iter=8 params={"max_candles": 273, "n": 190, "stop_loss_pct": 15.0}
+  in-sample: net=12,715.28 (5.4%/yr), win_rate=50.6%, avg_win=252.71, avg_loss=-98.16, max_dd=-3,159.52 (-21.6%), largest_loss=-422.24 (-1.7%), trades=160, pf=2.64
+  out-of-sample: net=10,054.78 (6.6%/yr), win_rate=48.3%, avg_win=220.34, avg_loss=-77.31, max_dd=-2,449.61 (-13.1%), largest_loss=-266.63 (-1.4%), trades=151, pf=2.67, efficiency=1.213
+  vs best: max-income: -14.8% vs provisional best (iter 7); balanced: -16.1% vs provisional best (iter 7); safe-starter: first eligible candidate
+  decision: recorded as robustness check 1/6 for candidate params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 2/6
+[2026-11-24T22:14:32Z] iter=9 params={"max_candles": 273, "n": 210, "stop_loss_pct": 15.0}
+  in-sample: net=13,119.35 (5.6%/yr), win_rate=54.5%, avg_win=239.49, avg_loss=-99.97, max_dd=-2,510.28 (-18.1%), largest_loss=-429.23 (-1.7%), trades=154, pf=2.88
+  out-of-sample: net=9,857.22 (6.5%/yr), win_rate=45.9%, avg_win=238.37, avg_loss=-77.38, max_dd=-2,593.06 (-13.8%), largest_loss=-266.39 (-1.4%), trades=146, pf=2.61, efficiency=1.169
+  vs best: max-income: -12.1% vs provisional best (iter 7); balanced: beats provisional best (iter 7) by +9.0%; safe-starter: first eligible candidate
+  decision: recorded as robustness check 2/6 for candidate params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 3/6
+[2026-11-24T22:14:33Z] iter=10 params={"max_candles": 273, "n": 200, "stop_loss_pct": 14}
+  in-sample: net=12,943.69 (5.5%/yr), win_rate=52.5%, avg_win=246.84, avg_loss=-100.59, max_dd=-2,890.56 (-19.8%), largest_loss=-419.53 (-1.7%), trades=158, pf=2.72
+  out-of-sample: net=10,033.28 (6.6%/yr), win_rate=46.7%, avg_win=231.16, avg_loss=-78.75, max_dd=-2,585.28 (-14.5%), largest_loss=-259.41 (-1.4%), trades=152, pf=2.57, efficiency=1.196
+  vs best: max-income: -13.2% vs provisional best (iter 7); balanced: -6.6% vs provisional best (iter 7); safe-starter: first eligible candidate
+  decision: recorded as robustness check 3/6 for candidate params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 4/6
+[2026-11-24T22:14:34Z] iter=11 params={"max_candles": 273, "n": 200, "stop_loss_pct": 16}
+  in-sample: net=13,039.14 (5.5%/yr), win_rate=52.2%, avg_win=251.99, avg_loss=-101.65, max_dd=-2,918.35 (-19.7%), largest_loss=-458.15 (-1.8%), trades=157, pf=2.71
+  out-of-sample: net=9,958.15 (6.5%/yr), win_rate=46.7%, avg_win=230.75, avg_loss=-79.32, max_dd=-2,646.89 (-14.8%), largest_loss=-284.40 (-1.6%), trades=152, pf=2.55, efficiency=1.184
+  vs best: max-income: -12.6% vs provisional best (iter 7); balanced: -6.8% vs provisional best (iter 7); safe-starter: first eligible candidate
+  decision: recorded as robustness check 4/6 for candidate params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  next: robustness check 5/6
+[2026-11-24T22:14:34Z] iter=12 params={"max_candles": 294, "n": 200, "stop_loss_pct": 15.0}
+  in-sample: net=13,510.51 (5.7%/yr), win_rate=54.7%, avg_win=256.17, avg_loss=-110.23, max_dd=-3,265.15 (-19.3%), largest_loss=-436.75 (-1.7%), trades=150, pf=2.80
+  out-of-sample: net=11,098.30 (7.1%/yr), win_rate=46.3%, avg_win=255.15, avg_loss=-81.33, max_dd=-2,557.32 (-14.1%), largest_loss=-277.25 (-1.4%), trades=149, pf=2.71, efficiency=1.252
+  vs best: max-income: -9.5% vs provisional best (iter 7); balanced: -13.7% vs provisional best (iter 7); safe-starter: first eligible candidate
+  decision: recorded as robustness check 6/6 for candidate params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  next: back to the candidate params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+[2026-11-24T22:14:31Z] iter=13 params={"max_candles": 273, "n": 200, "stop_loss_pct": 15.0}
+  in-sample: net=13,032.96 (5.5%/yr), win_rate=52.2%, avg_win=250.67, avg_loss=-100.29, max_dd=-2,835.93 (-19.4%), largest_loss=-427.99 (-1.7%), trades=157, pf=2.73
+  out-of-sample: net=9,945.21 (6.5%/yr), win_rate=46.7%, avg_win=230.77, avg_loss=-79.50, max_dd=-2,637.47 (-14.8%), largest_loss=-264.09 (-1.4%), trades=152, pf=2.54, efficiency=1.184
+  robustness: 6/6 one-step neighbours profitable in-sample (worst neighbour net 12,715.28)
+  vs best: max-income: -12.7% vs provisional best (iter 7); balanced: -4.2% vs provisional best (iter 7); safe-starter: first eligible candidate
+  decision: kept as new best for safe-starter (provisional: the variant file is written at the next checkpoint if nothing better turns up first) (re-used backtest from iter 6)
+  next: this robustness neighbour beat a profile best (safe-starter), check it as a candidate
+[2026-11-24T22:14:35Z] iter=14 params={"max_candles": 294, "n": 200, "stop_loss_pct": 15.0}
+  in-sample: net=13,510.51 (5.7%/yr), win_rate=54.7%, avg_win=256.17, avg_loss=-110.23, max_dd=-3,265.15 (-19.3%), largest_loss=-436.75 (-1.7%), trades=150, pf=2.80
+  out-of-sample: net=11,098.30 (7.1%/yr), win_rate=46.3%, avg_win=255.15, avg_loss=-81.33, max_dd=-2,557.32 (-14.1%), largest_loss=-277.25 (-1.4%), trades=149, pf=2.71, efficiency=1.252
+  vs best: max-income: -9.5% vs provisional best (iter 7); balanced: -13.7% vs provisional best (iter 7); safe-starter: +0.3% vs provisional best (iter 13)
+  decision: kept as candidate because it is eligible but beats no profile best (re-used backtest from iter 12)
+  next: this robustness neighbour beat a profile best (safe-starter), check it as a candidate
+[2026-11-24T22:14:35Z] iter=15 params={"max_candles": 273, "n": 200, "stop_loss_pct": 16}
+  in-sample: net=13,039.14 (5.5%/yr), win_rate=52.2%, avg_win=251.99, avg_loss=-101.65, max_dd=-2,918.35 (-19.7%), largest_loss=-458.15 (-1.8%), trades=157, pf=2.71
+  out-of-sample: net=9,958.15 (6.5%/yr), win_rate=46.7%, avg_win=230.75, avg_loss=-79.32, max_dd=-2,646.89 (-14.8%), largest_loss=-284.40 (-1.6%), trades=152, pf=2.55, efficiency=1.184
+  vs best: max-income: -12.6% vs provisional best (iter 7); balanced: -6.8% vs provisional best (iter 7); safe-starter: -2.4% vs provisional best (iter 13)
+  decision: kept as candidate because it is eligible but beats no profile best (re-used backtest from iter 11)
+  next: this robustness neighbour beat a profile best (safe-starter), check it as a candidate
+[2026-11-24T22:14:35Z] iter=16 params={"max_candles": 273, "n": 200, "stop_loss_pct": 14}
+  in-sample: net=12,943.69 (5.5%/yr), win_rate=52.5%, avg_win=246.84, avg_loss=-100.59, max_dd=-2,890.56 (-19.8%), largest_loss=-419.53 (-1.7%), trades=158, pf=2.72
+  out-of-sample: net=10,033.28 (6.6%/yr), win_rate=46.7%, avg_win=231.16, avg_loss=-78.75, max_dd=-2,585.28 (-14.5%), largest_loss=-259.41 (-1.4%), trades=152, pf=2.57, efficiency=1.196
+  vs best: max-income: -13.2% vs provisional best (iter 7); balanced: -6.6% vs provisional best (iter 7); safe-starter: -1.8% vs provisional best (iter 13)
+  decision: kept as candidate because it is eligible but beats no profile best (re-used backtest from iter 10)
+  next: this robustness neighbour beat a profile best (balanced, safe-starter), check it as a candidate
