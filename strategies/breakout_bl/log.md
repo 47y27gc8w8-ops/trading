@@ -1,0 +1,13 @@
+- 2026-11-23 22:07:39 screen: 60 coins with daily bars, original rules {'entry_n': 20, 'exit_n': 10, 'trend_sma': 0, 'trailing_stop_pct': 0.0}
+- 2026-11-23 22:07:41 screen done in 3s: 35 eligible, 16 selected: SOLUSDT, VETUSDT, ADAUSDT, HBARUSDT, BTCUSDT, DOGEUSDT, BNBUSDT, AVAXUSDT, SHIBUSDT, DOTUSDT, NEARUSDT, UNIUSDT, ALGOUSDT, RAYUSDT, ETHUSDT, ETCUSDT
+- 2026-11-23 22:07:41 trendiness check: Spearman(efficiency ratio, IS Sharpe) over eligible coins = 0.51
+- 2026-11-23 22:07:42 original rules, selected basket (16 coins): IS Sharpe 1.388, OOS Sharpe -0.379, OOS return -22.54% (B&H -67.94%), OOS maxDD -41.84%
+- 2026-11-23 22:07:42 original rules, rejected basket (19 coins): IS Sharpe 0.443, OOS Sharpe 1.048, OOS return 88.7% (B&H 36.56%), OOS maxDD -31.36%
+- 2026-11-23 22:07:42 original rules, all_eligible basket (35 coins): IS Sharpe 1.199, OOS Sharpe 0.678, OOS return 37.85% (B&H -11.21%), OOS maxDD -27.67%
+- 2026-11-23 22:07:42 tune: 351 grid points on the 16-coin basket, budget left 596s
+- 2026-11-23 22:08:06 tune done (28s): shared champion {'entry_n': 20, 'exit_n': 5, 'trend_sma': 50, 'trailing_stop_pct': 0.0} IS Sharpe 1.528 (smoothed 1.514) vs original 1.388; OOS Sharpe -0.373 vs original -0.379
+- 2026-11-23 22:08:32 per-coin tuning done (54s) for 16 coins
+- 2026-11-23 22:08:33 finished in 54s; results in results/
+- 2026-11-23 22:09:33 tune_broad: 351 grid points on all 35 eligible coins
+- 2026-11-23 22:10:07 tune_broad done in 33s: champion {'entry_n': 20, 'exit_n': 5, 'trend_sma': 50, 'trailing_stop_pct': 0.0} IS Sharpe 1.346 OOS Sharpe 0.442 (original 20/10: IS 1.199, OOS 0.678)
+- 2026-11-23 22:09:20 walkforward (original 20/10 and 20/5+SMA50): selecting coins by trailing 3y breakout results beats non-selected in 4/6 resp. 3/6 years, mean Sharpe diff 0.00 / -0.06; selecting by trendiness (efficiency ratio) is worse (-0.58 / -0.43)
