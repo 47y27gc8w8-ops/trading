@@ -9,7 +9,7 @@ processes, and merges all strategies/leaderboard.json files. Host python3, stdli
   python3 scripts/library_progress.py --mode final     send the final report now
   python3 scripts/library_progress.py --auto           what cron runs every hour:
       daily update once per day in the 12:00 hour Europe/Zurich (MET/MEST);
-      final report once, when no queue process or optimizer container is left,
+      final report once, when no strategy is waiting or running and no optimizer container is left,
       then this script removes its own crontab line (marker "# library-progress").
 Add --dry-run to print an email instead of sending it.
 """
@@ -112,6 +112,29 @@ def finished_times(st):
     return sorted(out)
 
 
+def has_variant(n: str) -> bool:
+    """A validated variant file exists for strategy n (base run or any symbol/basket run)."""
+    for r in roots():
+        d = r / "strategies" / n
+        if glob.glob(str(d / f"{n}__*__v*.md")) or glob.glob(str(d / "symbols/*" / f"{n}__*__v*.md")):
+            return True
+    return False
+
+
+def refresh_leaderboards():
+    """Rebuild strategies/leaderboard.json in every checkout that has results (final report only;
+    runs inside one of the 3 shared optimizer slots like every other container)."""
+    tso = MAIN / ".claude/skills/trading-strategy-optimizer/scripts"
+    for r in roots():
+        if not glob.glob(str(r / "strategies/*/summary.md")):
+            continue
+        cmd = (f"docker run --rm --user 1000:1000 -e TZ=UTC -v {r}:/app -v {MAIN}/data:/app/data "
+               f"-v {MAIN}/logs:/app/logs -v {MAIN}/config:/app/config:ro -v {tso}:/opt/tso:ro -w /app "
+               f"trading-pipeline:latest python /opt/tso/leaderboard.py strategies")
+        subprocess.run(["flock", "-w", "3600", str(MAIN / "logs/tso-slot-1.lock"), "sh", "-c", cmd],
+                       capture_output=True, text=True)
+
+
 def leaderboard():
     entries, seen = [], set()
     for r in roots():
@@ -138,6 +161,8 @@ def fmt_entry(e):
 
 
 def report(mode: str):
+    if mode == "final":
+        refresh_leaderboards()
     names = library()
     running = set(sh("docker ps --format '{{.Names}}'").split())
     procs = []   # real queue processes only ("bash <queue>.sh args"), not the shells that launched them
@@ -161,16 +186,16 @@ def report(mode: str):
     else:
         eta_s = "-"
     lb = [e for e in leaderboard() if e["strategy"] in names]
-    improved = sorted({e["strategy"] for e in lb})
+    improved = sorted(n for n in done if has_variant(n))
     tso = sorted(x for x in running if x.startswith("tso-"))
 
     L = []
     if mode == "final":
-        L += ["The library optimization is finished: no queue or optimizer container is running any more.", ""]
+        L += ["The library optimization is finished: every runnable strategy has been through its queue.", ""]
     L += [f"Library: {len(names)} strategies",
           f"  done (backtested and optimized): {len(done)}"
           f" ({len([n for n in done if st[n][0] != 'done'])} of them stopped at the screen: no symbol passed)",
-          f"  with at least one validated variant on a leaderboard: {len([n for n in improved if n in names])}",
+          f"  with at least one validated variant: {len(improved)}",
           f"  running now: {len(groups.get('running', []))}   waiting in a queue: {len(groups.get('waiting', []))}"
           f"   stalled: {len(groups.get('stalled', []))}",
           f"  not runnable on the per-symbol engine: {len(groups.get('not runnable', []))}",
@@ -213,7 +238,7 @@ def report(mode: str):
     subj = (f"[Claude] Done: library optimization finished, {len(done)}/{len(names)} strategies"
             if mode == "final" else
             f"[Claude] Library update: {len(done)}/{len(names)} done, {len(pending)} to go")
-    finished = not pending and not procs and not tso
+    finished = not pending and not tso   # a stuck queue process whose strategies are all done doesn't block
     return subj, "\n".join(L), finished
 
 
