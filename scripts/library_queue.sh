@@ -3,15 +3,17 @@
 # shared slot locks (/home/luca/trading/logs/tso-slot-{1,2,3}.lock; at most 3 optimizer
 # containers machine-wide, agreed between the parallel library sessions).
 #
-#   setsid nohup bash scripts/library_queue.sh <label> name:universe [name:universe ...] >/dev/null 2>&1 &
+#   setsid nohup bash scripts/library_queue.sh <label> name:universe[:optimizer flags] ... >/dev/null 2>&1 &
 #
-# universe = "stock" or "etf" (= config etf list minus ^ indices).
+# universe = "stock" or "etf" (= config etf list minus ^ indices) or anything screen.py accepts (crypto).
+# Optional third field: extra optimize.py flags for that strategy, e.g. trix_zero_trend:crypto:--min-trades-is 10.
+# LIBRARY_WT=<worktree> runs the queue on another worktree's strategies/ (default: the one holding this script).
 # Per strategy: base run 0.5 h -> screen (60 samples, 2 workers) -> broad basket of every
 # "ok" symbol, 1 h. A strategy is skipped if a dedicated worktree for it exists when its turn
-# comes (another session owns it). Leaderboard at the end, then one summary email.
+# comes (another session owns it), unless this queue runs in that worktree. Leaderboard at the end, then one summary email.
 # Each stage is resumable: re-running the same command continues where it stopped.
 set -u
-WT="$(cd "$(dirname "$0")/.." && pwd)"
+WT="${LIBRARY_WT:-$(cd "$(dirname "$0")/.." && pwd)}"
 MAIN=/home/luca/trading
 TSO=$MAIN/.claude/skills/trading-strategy-optimizer/scripts
 SEND=$HOME/.claude/skills/long-task-email/scripts/send_email.py
@@ -45,17 +47,17 @@ in_slot() {   # run "$@" while holding a free slot lock; wait until one is free
 DONE=""; FAILED=""; SKIPPED=""
 log "queue $LABEL start: $*"
 for item in "$@"; do
-  n=${item%%:*}; u=${item#*:}
+  n=${item%%:*}; rest=${item#*:}; u=${rest%%:*}; F=""; [ "$rest" != "$u" ] && F=${rest#*:}
   claim=$(echo "$n" | tr _ -)
-  if git -C "$MAIN" worktree list | grep -q "/worktrees/$claim[[:space:]]"; then
+  if [ "$(basename "$WT")" != "$claim" ] && git -C "$MAIN" worktree list | grep -q "/worktrees/$claim[[:space:]]"; then
     log "$n: skipped, dedicated worktree $claim exists"; SKIPPED="$SKIPPED $n"; continue
   fi
   [ "$u" = etf ] && U="$ETF_LIST" || U="$u"
   S=strategies/$n
-  CHAIN="python /opt/tso/optimize.py $S --hours 0.5 &&
+  CHAIN="python /opt/tso/optimize.py $S --hours 0.5 $F &&
     python /opt/tso/screen.py $S --universe $U --samples 60 --workers 2 &&
     OK=\$(python -c \"import csv;print(','.join(r['symbol'] for r in csv.DictReader(open('$S/screen.csv')) if r['status']=='ok'))\") &&
-    if [ -n \"\$OK\" ]; then python /opt/tso/optimize.py $S --symbols \$OK --tag broad --hours 1; else echo 'no ok symbols'; fi"
+    if [ -n \"\$OK\" ]; then python /opt/tso/optimize.py $S --symbols \$OK --tag broad --hours 1 $F; else echo 'no ok symbols'; fi"
   log "$n: waiting for a slot"
   in_slot bash "$0" --container "tso-$n" "$CHAIN"
   rc=$?
