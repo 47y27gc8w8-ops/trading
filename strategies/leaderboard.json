@@ -1,0 +1,2812 @@
+{
+  "generated": "2026-11-27T13:52:50Z",
+  "note": "Backtest results only; no orders are placed. Re-verify before paper trading.",
+  "ranking": "conservative %/yr = min(IS, OOS); worst DD = worse of IS and OOS",
+  "best": {
+    "base: basket of 11": {
+      "max-income": {
+        "strategy": "high_proximity_leader_rotation",
+        "tag": null,
+        "variant_file": "strategies/high_proximity_leader_rotation/high_proximity_leader_rotation__max-income__v002.md"
+      },
+      "balanced": {
+        "strategy": "sector_roc_rotation",
+        "tag": null,
+        "variant_file": "strategies/sector_roc_rotation/sector_roc_rotation__balanced__v002.md"
+      },
+      "safe-starter": {
+        "strategy": "sector_roc_rotation",
+        "tag": null,
+        "variant_file": "strategies/sector_roc_rotation/sector_roc_rotation__safe-starter__v002.md"
+      }
+    },
+    "BTCUSDT,ETHUSDT,LTCUSDT,SOLUSDT": {
+      "max-income": {
+        "strategy": "crypto_equal_weight_rebalance",
+        "tag": null,
+        "variant_file": "strategies/crypto_equal_weight_rebalance/crypto_equal_weight_rebalance__max-income__v001.md"
+      },
+      "safe-starter": {
+        "strategy": "crypto_equal_weight_rebalance",
+        "tag": null,
+        "variant_file": "strategies/crypto_equal_weight_rebalance/crypto_equal_weight_rebalance__safe-starter__v001.md"
+      }
+    },
+    "base: basket of 8": {
+      "max-income": {
+        "strategy": "downside_risk_weighted_momentum",
+        "tag": null,
+        "variant_file": "strategies/downside_risk_weighted_momentum/downside_risk_weighted_momentum__max-income__v001.md"
+      },
+      "balanced": {
+        "strategy": "multi_horizon_rank_rotation",
+        "tag": null,
+        "variant_file": "strategies/multi_horizon_rank_rotation/multi_horizon_rank_rotation__balanced__v001.md"
+      },
+      "safe-starter": {
+        "strategy": "low_correlation_momentum_selection",
+        "tag": null,
+        "variant_file": "strategies/low_correlation_momentum_selection/low_correlation_momentum_selection__safe-starter__v002.md"
+      }
+    },
+    "IEF,SPY": {
+      "max-income": {
+        "strategy": "drawdown_defensive_switch",
+        "tag": null,
+        "variant_file": "strategies/drawdown_defensive_switch/drawdown_defensive_switch__max-income__v002.md"
+      },
+      "balanced": {
+        "strategy": "drawdown_defensive_switch",
+        "tag": null,
+        "variant_file": "strategies/drawdown_defensive_switch/drawdown_defensive_switch__balanced__v002.md"
+      },
+      "safe-starter": {
+        "strategy": "drawdown_defensive_switch",
+        "tag": null,
+        "variant_file": "strategies/drawdown_defensive_switch/drawdown_defensive_switch__safe-starter__v001.md"
+      }
+    },
+    "EFA,IEF,SPY": {
+      "max-income": {
+        "strategy": "dual_momentum_allocation",
+        "tag": null,
+        "variant_file": "strategies/dual_momentum_allocation/dual_momentum_allocation__max-income__v001.md"
+      },
+      "balanced": {
+        "strategy": "dual_momentum_allocation",
+        "tag": null,
+        "variant_file": "strategies/dual_momentum_allocation/dual_momentum_allocation__balanced__v001.md"
+      },
+      "safe-starter": {
+        "strategy": "dual_momentum_allocation",
+        "tag": null,
+        "variant_file": "strategies/dual_momentum_allocation/dual_momentum_allocation__safe-starter__v001.md"
+      }
+    },
+    "EWA,EWC": {
+      "max-income": {
+        "strategy": "half_life_filtered_pairs",
+        "tag": null,
+        "variant_file": "strategies/half_life_filtered_pairs/half_life_filtered_pairs__max-income__v002.md"
+      },
+      "balanced": {
+        "strategy": "half_life_filtered_pairs",
+        "tag": null,
+        "variant_file": "strategies/half_life_filtered_pairs/half_life_filtered_pairs__balanced__v001.md"
+      }
+    },
+    "KO,PEP": {
+      "max-income": {
+        "strategy": "ratio_zscore_pairs",
+        "tag": null,
+        "variant_file": "strategies/ratio_zscore_pairs/ratio_zscore_pairs__max-income__v002.md"
+      },
+      "balanced": {
+        "strategy": "ratio_zscore_pairs",
+        "tag": null,
+        "variant_file": "strategies/ratio_zscore_pairs/ratio_zscore_pairs__balanced__v002.md"
+      }
+    },
+    "SPY": {
+      "max-income": {
+        "strategy": "single_etf_volatility_target",
+        "tag": null,
+        "variant_file": "strategies/single_etf_volatility_target/single_etf_volatility_target__max-income__v002.md"
+      },
+      "balanced": {
+        "strategy": "single_etf_volatility_target",
+        "tag": null,
+        "variant_file": "strategies/single_etf_volatility_target/single_etf_volatility_target__balanced__v002.md"
+      },
+      "safe-starter": {
+        "strategy": "single_etf_volatility_target",
+        "tag": null,
+        "variant_file": "strategies/single_etf_volatility_target/single_etf_volatility_target__safe-starter__v002.md"
+      }
+    },
+    "SPY,TLT": {
+      "max-income": {
+        "strategy": "stock_bond_paired_switch",
+        "tag": null,
+        "variant_file": "strategies/stock_bond_paired_switch/stock_bond_paired_switch__max-income__v001.md"
+      },
+      "balanced": {
+        "strategy": "stock_bond_paired_switch",
+        "tag": null,
+        "variant_file": "strategies/stock_bond_paired_switch/stock_bond_paired_switch__balanced__v001.md"
+      },
+      "safe-starter": {
+        "strategy": "stock_bond_paired_switch",
+        "tag": null,
+        "variant_file": "strategies/stock_bond_paired_switch/stock_bond_paired_switch__safe-starter__v001.md"
+      }
+    }
+  },
+  "entries": [
+    {
+      "strategy": "consistent_winner_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/consistent_winner_rotation/consistent_winner_rotation__max-income__v002.md",
+      "backtest_py": "strategies/consistent_winner_rotation/backtest.py",
+      "bt_version": "ee39969495",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 315,
+        "n": 19,
+        "stop_loss_pct": 11
+      },
+      "iter": 910,
+      "is_yearly_pct": 5.33,
+      "oos_yearly_pct": 9.79,
+      "conservative_yearly_pct": 5.33,
+      "worst_max_dd_pct": -35.57,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 28.0,
+      "is_win_rate": 50.91,
+      "oos_win_rate": 51.97,
+      "is_trades": 165,
+      "oos_trades": 152,
+      "oos_efficiency": 1.837,
+      "largest_loss_pct": -5.67,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLE",
+            "since": "2026-02-02 00:00:00+00:00",
+            "entry_price": 49.758662
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 56.977087
+          },
+          {
+            "symbol": "XLP",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 89.866948
+          },
+          {
+            "symbol": "XLV",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 172.013467
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "consistent_winner_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/consistent_winner_rotation/consistent_winner_rotation__balanced__v002.md",
+      "backtest_py": "strategies/consistent_winner_rotation/backtest.py",
+      "bt_version": "ee39969495",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 336,
+        "n": 19,
+        "stop_loss_pct": 11
+      },
+      "iter": 911,
+      "is_yearly_pct": 5.31,
+      "oos_yearly_pct": 9.39,
+      "conservative_yearly_pct": 5.31,
+      "worst_max_dd_pct": -35.57,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 28.0,
+      "is_win_rate": 50.91,
+      "oos_win_rate": 51.66,
+      "is_trades": 165,
+      "oos_trades": 151,
+      "oos_efficiency": 1.768,
+      "largest_loss_pct": -5.67,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLE",
+            "since": "2026-02-02 00:00:00+00:00",
+            "entry_price": 49.758662
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 56.977087
+          },
+          {
+            "symbol": "XLP",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 89.866948
+          },
+          {
+            "symbol": "XLV",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 172.013467
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "crypto_equal_weight_rebalance",
+      "tag": null,
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "LTCUSDT",
+        "SOLUSDT"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/crypto_equal_weight_rebalance/crypto_equal_weight_rebalance__max-income__v001.md",
+      "backtest_py": "strategies/crypto_equal_weight_rebalance/backtest.py",
+      "bt_version": "7d4096a16d",
+      "stale": false,
+      "params": {
+        "max_candles": 84,
+        "stop_loss_pct": 13
+      },
+      "iter": 435,
+      "is_yearly_pct": 46.23,
+      "oos_yearly_pct": 14.22,
+      "conservative_yearly_pct": 14.22,
+      "worst_max_dd_pct": -70.9,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 14.0,
+      "is_win_rate": 32.37,
+      "oos_win_rate": 34.29,
+      "is_trades": 139,
+      "oos_trades": 70,
+      "oos_efficiency": 0.308,
+      "largest_loss_pct": -3.31,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2024-01-01",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [],
+        "data_until": "2026-11-26 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "crypto_equal_weight_rebalance",
+      "tag": null,
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "LTCUSDT",
+        "SOLUSDT"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/crypto_equal_weight_rebalance/crypto_equal_weight_rebalance__safe-starter__v001.md",
+      "backtest_py": "strategies/crypto_equal_weight_rebalance/backtest.py",
+      "bt_version": "7d4096a16d",
+      "stale": false,
+      "params": {
+        "max_candles": 42,
+        "stop_loss_pct": 11
+      },
+      "iter": 436,
+      "is_yearly_pct": 38.07,
+      "oos_yearly_pct": 9.6,
+      "conservative_yearly_pct": 9.6,
+      "worst_max_dd_pct": -58.23,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 17.0,
+      "is_win_rate": 30.0,
+      "oos_win_rate": 41.11,
+      "is_trades": 180,
+      "oos_trades": 90,
+      "oos_efficiency": 0.252,
+      "largest_loss_pct": -2.84,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2024-01-01",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [],
+        "data_until": "2026-11-26 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "downside_risk_weighted_momentum",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/downside_risk_weighted_momentum/downside_risk_weighted_momentum__max-income__v001.md",
+      "backtest_py": "strategies/downside_risk_weighted_momentum/backtest.py",
+      "bt_version": "fa213e948c",
+      "stale": false,
+      "params": {
+        "k": 3,
+        "max_candles": 273,
+        "n": 126,
+        "stop_loss_pct": 25
+      },
+      "iter": 239,
+      "is_yearly_pct": 11.37,
+      "oos_yearly_pct": 8.87,
+      "conservative_yearly_pct": 8.87,
+      "worst_max_dd_pct": -25.72,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 39.0,
+      "is_win_rate": 61.62,
+      "oos_win_rate": 59.55,
+      "is_trades": 99,
+      "oos_trades": 89,
+      "oos_efficiency": 0.78,
+      "largest_loss_pct": -4.7,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-03-02 00:00:00+00:00",
+            "entry_price": 27.054976
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 103.721109
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 751.144243
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "downside_risk_weighted_momentum",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/downside_risk_weighted_momentum/downside_risk_weighted_momentum__balanced__v002.md",
+      "backtest_py": "strategies/downside_risk_weighted_momentum/backtest.py",
+      "bt_version": "fa213e948c",
+      "stale": false,
+      "params": {
+        "k": 6,
+        "max_candles": 462,
+        "n": 252,
+        "stop_loss_pct": 14
+      },
+      "iter": 843,
+      "is_yearly_pct": 7.8,
+      "oos_yearly_pct": 3.04,
+      "conservative_yearly_pct": 3.04,
+      "worst_max_dd_pct": -27.96,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 36.0,
+      "is_win_rate": 57.14,
+      "oos_win_rate": 44.12,
+      "is_trades": 77,
+      "oos_trades": 68,
+      "oos_efficiency": 0.39,
+      "largest_loss_pct": -5.94,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2025-08-01 00:00:00+00:00",
+            "entry_price": 24.529351
+          },
+          {
+            "symbol": "EEM",
+            "since": "2026-02-02 00:00:00+00:00",
+            "entry_price": 59.679946
+          },
+          {
+            "symbol": "EFA",
+            "since": "2025-04-01 00:00:00+00:00",
+            "entry_price": 87.79945
+          },
+          {
+            "symbol": "SPY",
+            "since": "2025-04-01 00:00:00+00:00",
+            "entry_price": 646.671852
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 94.653985
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "drawdown_defensive_switch",
+      "tag": null,
+      "symbols": [
+        "IEF",
+        "SPY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/drawdown_defensive_switch/drawdown_defensive_switch__max-income__v002.md",
+      "backtest_py": "strategies/drawdown_defensive_switch/backtest.py",
+      "bt_version": "71d2033794",
+      "stale": false,
+      "params": {
+        "dd": 9,
+        "max_candles": 252,
+        "n": 105,
+        "stop_loss_pct": 24
+      },
+      "iter": 849,
+      "is_yearly_pct": 10.37,
+      "oos_yearly_pct": 13.18,
+      "conservative_yearly_pct": 10.37,
+      "worst_max_dd_pct": -22.52,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 44.0,
+      "is_win_rate": 64.71,
+      "oos_win_rate": 66.67,
+      "is_trades": 17,
+      "oos_trades": 15,
+      "oos_efficiency": 1.271,
+      "largest_loss_pct": -8.25,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 743.377539
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "drawdown_defensive_switch",
+      "tag": null,
+      "symbols": [
+        "IEF",
+        "SPY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/drawdown_defensive_switch/drawdown_defensive_switch__balanced__v002.md",
+      "backtest_py": "strategies/drawdown_defensive_switch/backtest.py",
+      "bt_version": "71d2033794",
+      "stale": false,
+      "params": {
+        "dd": 6,
+        "max_candles": 189,
+        "n": 105,
+        "stop_loss_pct": 7
+      },
+      "iter": 850,
+      "is_yearly_pct": 9.92,
+      "oos_yearly_pct": 7.03,
+      "conservative_yearly_pct": 7.03,
+      "worst_max_dd_pct": -25.41,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 39.0,
+      "is_win_rate": 76.0,
+      "oos_win_rate": 62.5,
+      "is_trades": 25,
+      "oos_trades": 24,
+      "oos_efficiency": 0.709,
+      "largest_loss_pct": -7.12,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 717.829936
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "drawdown_defensive_switch",
+      "tag": null,
+      "symbols": [
+        "IEF",
+        "SPY"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/drawdown_defensive_switch/drawdown_defensive_switch__safe-starter__v001.md",
+      "backtest_py": "strategies/drawdown_defensive_switch/backtest.py",
+      "bt_version": "71d2033794",
+      "stale": false,
+      "params": {
+        "dd": 5,
+        "max_candles": 189,
+        "n": 210,
+        "stop_loss_pct": 22
+      },
+      "iter": 291,
+      "is_yearly_pct": 8.22,
+      "oos_yearly_pct": 9.04,
+      "conservative_yearly_pct": 8.22,
+      "worst_max_dd_pct": -13.31,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 75.0,
+      "is_win_rate": 76.92,
+      "oos_win_rate": 68.18,
+      "is_trades": 26,
+      "oos_trades": 22,
+      "oos_efficiency": 1.1,
+      "largest_loss_pct": -4.05,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 717.829936
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "dual_momentum_allocation",
+      "tag": null,
+      "symbols": [
+        "EFA",
+        "IEF",
+        "SPY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/dual_momentum_allocation/dual_momentum_allocation__max-income__v001.md",
+      "backtest_py": "strategies/dual_momentum_allocation/backtest.py",
+      "bt_version": "164566c210",
+      "stale": false,
+      "params": {
+        "max_candles": 273,
+        "n": 315,
+        "stop_loss_pct": 20
+      },
+      "iter": 4838,
+      "is_yearly_pct": 12.53,
+      "oos_yearly_pct": 6.2,
+      "conservative_yearly_pct": 6.2,
+      "worst_max_dd_pct": -27.64,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 36.0,
+      "is_win_rate": 65.0,
+      "oos_win_rate": 70.37,
+      "is_trades": 20,
+      "oos_trades": 27,
+      "oos_efficiency": 0.495,
+      "largest_loss_pct": -20.1,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "EFA",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 103.721109
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "dual_momentum_allocation",
+      "tag": null,
+      "symbols": [
+        "EFA",
+        "IEF",
+        "SPY"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/dual_momentum_allocation/dual_momentum_allocation__safe-starter__v001.md",
+      "backtest_py": "strategies/dual_momentum_allocation/backtest.py",
+      "bt_version": "164566c210",
+      "stale": false,
+      "params": {
+        "max_candles": 273,
+        "n": 315,
+        "stop_loss_pct": 20
+      },
+      "iter": 4838,
+      "is_yearly_pct": 12.53,
+      "oos_yearly_pct": 6.2,
+      "conservative_yearly_pct": 6.2,
+      "worst_max_dd_pct": -27.64,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 36.0,
+      "is_win_rate": 65.0,
+      "oos_win_rate": 70.37,
+      "is_trades": 20,
+      "oos_trades": 27,
+      "oos_efficiency": 0.495,
+      "largest_loss_pct": -20.1,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "EFA",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 103.721109
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "dual_momentum_allocation",
+      "tag": null,
+      "symbols": [
+        "EFA",
+        "IEF",
+        "SPY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/dual_momentum_allocation/dual_momentum_allocation__balanced__v001.md",
+      "backtest_py": "strategies/dual_momentum_allocation/backtest.py",
+      "bt_version": "164566c210",
+      "stale": false,
+      "params": {
+        "max_candles": 420,
+        "n": 315,
+        "stop_loss_pct": 21
+      },
+      "iter": 4839,
+      "is_yearly_pct": 12.2,
+      "oos_yearly_pct": 7.45,
+      "conservative_yearly_pct": 7.45,
+      "worst_max_dd_pct": -24.65,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 41.0,
+      "is_win_rate": 66.67,
+      "oos_win_rate": 69.23,
+      "is_trades": 18,
+      "oos_trades": 26,
+      "oos_efficiency": 0.611,
+      "largest_loss_pct": -8.28,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "EFA",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 103.721109
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "equal_risk_contribution_trend",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/equal_risk_contribution_trend/equal_risk_contribution_trend__max-income__v001.md",
+      "backtest_py": "strategies/equal_risk_contribution_trend/backtest.py",
+      "bt_version": "7bb330d3d9",
+      "stale": false,
+      "params": {
+        "max_candles": 294,
+        "n": 126,
+        "stop_loss_pct": 15.0
+      },
+      "iter": 175,
+      "is_yearly_pct": 6.5,
+      "oos_yearly_pct": 4.36,
+      "conservative_yearly_pct": 4.36,
+      "worst_max_dd_pct": -30.14,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 33.0,
+      "is_win_rate": 44.12,
+      "oos_win_rate": 41.12,
+      "is_trades": 102,
+      "oos_trades": 107,
+      "oos_efficiency": 0.671,
+      "largest_loss_pct": -12.91,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 32.37971
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 102.370922
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 743.477975
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "equal_risk_contribution_trend",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/equal_risk_contribution_trend/equal_risk_contribution_trend__balanced__v002.md",
+      "backtest_py": "strategies/equal_risk_contribution_trend/backtest.py",
+      "bt_version": "7bb330d3d9",
+      "stale": false,
+      "params": {
+        "max_candles": 189,
+        "n": 63,
+        "stop_loss_pct": 13
+      },
+      "iter": 788,
+      "is_yearly_pct": 6.25,
+      "oos_yearly_pct": 4.8,
+      "conservative_yearly_pct": 4.8,
+      "worst_max_dd_pct": -25.99,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 38.0,
+      "is_win_rate": 48.41,
+      "oos_win_rate": 40.62,
+      "is_trades": 126,
+      "oos_trades": 128,
+      "oos_efficiency": 0.768,
+      "largest_loss_pct": -4.37,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 27.864179
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 103.411011
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 746.135373
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "half_life_filtered_pairs",
+      "tag": null,
+      "symbols": [
+        "EWA",
+        "EWC"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/half_life_filtered_pairs/half_life_filtered_pairs__max-income__v002.md",
+      "backtest_py": "strategies/half_life_filtered_pairs/backtest.py",
+      "bt_version": "31c5e452a7",
+      "stale": false,
+      "params": {
+        "half": 70,
+        "leg_stop_pct": 13,
+        "max_candles": 25,
+        "n": 70,
+        "pair_stop_pct": 3.5
+      },
+      "iter": 790,
+      "is_yearly_pct": 0.78,
+      "oos_yearly_pct": 0.22,
+      "conservative_yearly_pct": 0.22,
+      "worst_max_dd_pct": -14.09,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 71.0,
+      "is_win_rate": 61.4,
+      "oos_win_rate": 58.33,
+      "is_trades": 57,
+      "oos_trades": 36,
+      "oos_efficiency": 0.282,
+      "largest_loss_pct": -4.85,
+      "robust_frac": 0.778,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "half_life_filtered_pairs",
+      "tag": null,
+      "symbols": [
+        "EWA",
+        "EWC"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/half_life_filtered_pairs/half_life_filtered_pairs__balanced__v001.md",
+      "backtest_py": "strategies/half_life_filtered_pairs/backtest.py",
+      "bt_version": "31c5e452a7",
+      "stale": false,
+      "params": {
+        "half": 60,
+        "leg_stop_pct": 13,
+        "max_candles": 25,
+        "n": 70,
+        "pair_stop_pct": 5.0
+      },
+      "iter": 255,
+      "is_yearly_pct": 0.69,
+      "oos_yearly_pct": 0.22,
+      "conservative_yearly_pct": 0.22,
+      "worst_max_dd_pct": -11.96,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 84.0,
+      "is_win_rate": 63.64,
+      "oos_win_rate": 58.33,
+      "is_trades": 55,
+      "oos_trades": 36,
+      "oos_efficiency": 0.319,
+      "largest_loss_pct": -4.85,
+      "robust_frac": 0.778,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "high_proximity_leader_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/high_proximity_leader_rotation/high_proximity_leader_rotation__max-income__v002.md",
+      "backtest_py": "strategies/high_proximity_leader_rotation/backtest.py",
+      "bt_version": "b629cd4b61",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 273,
+        "n": 294,
+        "stop_loss_pct": 27
+      },
+      "iter": 1059,
+      "is_yearly_pct": 5.39,
+      "oos_yearly_pct": 9.49,
+      "conservative_yearly_pct": 5.39,
+      "worst_max_dd_pct": -38.52,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 26.0,
+      "is_win_rate": 59.41,
+      "oos_win_rate": 57.3,
+      "is_trades": 202,
+      "oos_trades": 185,
+      "oos_efficiency": 1.761,
+      "largest_loss_pct": -13.15,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLB",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 53.245969
+          },
+          {
+            "symbol": "XLE",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 58.908276
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 56.295402
+          },
+          {
+            "symbol": "XLP",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 89.866948
+          },
+          {
+            "symbol": "XLV",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 160.599188
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "high_proximity_leader_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/high_proximity_leader_rotation/high_proximity_leader_rotation__balanced__v002.md",
+      "backtest_py": "strategies/high_proximity_leader_rotation/backtest.py",
+      "bt_version": "b629cd4b61",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 126,
+        "n": 336,
+        "stop_loss_pct": 28
+      },
+      "iter": 1060,
+      "is_yearly_pct": 5.55,
+      "oos_yearly_pct": 8.53,
+      "conservative_yearly_pct": 5.55,
+      "worst_max_dd_pct": -38.24,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 26.0,
+      "is_win_rate": 59.15,
+      "oos_win_rate": 60.49,
+      "is_trades": 235,
+      "oos_trades": 205,
+      "oos_efficiency": 1.537,
+      "largest_loss_pct": -13.15,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLB",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 53.245969
+          },
+          {
+            "symbol": "XLE",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 58.908276
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 56.295402
+          },
+          {
+            "symbol": "XLP",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 89.866948
+          },
+          {
+            "symbol": "XLV",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 160.599188
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "inverse_volatility_trend_basket",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/inverse_volatility_trend_basket/inverse_volatility_trend_basket__max-income__v002.md",
+      "backtest_py": "strategies/inverse_volatility_trend_basket/backtest.py",
+      "bt_version": "aa09d6f490",
+      "stale": false,
+      "params": {
+        "max_candles": 399,
+        "n": 170,
+        "stop_loss_pct": 16
+      },
+      "iter": 844,
+      "is_yearly_pct": 8.04,
+      "oos_yearly_pct": 7.05,
+      "conservative_yearly_pct": 7.05,
+      "worst_max_dd_pct": -26.01,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 38.0,
+      "is_win_rate": 44.79,
+      "oos_win_rate": 45.54,
+      "is_trades": 96,
+      "oos_trades": 101,
+      "oos_efficiency": 0.877,
+      "largest_loss_pct": -10.92,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2025-07-01 00:00:00+00:00",
+            "entry_price": 26.249151
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 103.411011
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 737.477845
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "inverse_volatility_trend_basket",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/inverse_volatility_trend_basket/inverse_volatility_trend_basket__balanced__v002.md",
+      "backtest_py": "strategies/inverse_volatility_trend_basket/backtest.py",
+      "bt_version": "aa09d6f490",
+      "stale": false,
+      "params": {
+        "max_candles": 441,
+        "n": 180,
+        "stop_loss_pct": 19
+      },
+      "iter": 845,
+      "is_yearly_pct": 7.7,
+      "oos_yearly_pct": 7.69,
+      "conservative_yearly_pct": 7.69,
+      "worst_max_dd_pct": -21.73,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 46.0,
+      "is_win_rate": 46.59,
+      "oos_win_rate": 46.24,
+      "is_trades": 88,
+      "oos_trades": 93,
+      "oos_efficiency": 0.999,
+      "largest_loss_pct": -9.59,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2025-07-01 00:00:00+00:00",
+            "entry_price": 25.900739
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 732.35537
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "low_correlation_momentum_selection",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/low_correlation_momentum_selection/low_correlation_momentum_selection__max-income__v001.md",
+      "backtest_py": "strategies/low_correlation_momentum_selection/backtest.py",
+      "bt_version": "86f922c15c",
+      "stale": false,
+      "params": {
+        "corr": 0.65,
+        "k": 3,
+        "max_candles": 273,
+        "stop_loss_pct": 8
+      },
+      "iter": 256,
+      "is_yearly_pct": 12.82,
+      "oos_yearly_pct": 6.6,
+      "conservative_yearly_pct": 6.6,
+      "worst_max_dd_pct": -24.66,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 41.0,
+      "is_win_rate": 61.18,
+      "oos_win_rate": 46.67,
+      "is_trades": 85,
+      "oos_trades": 90,
+      "oos_efficiency": 0.515,
+      "largest_loss_pct": -6.91,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 28.576484
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "low_correlation_momentum_selection",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/low_correlation_momentum_selection/low_correlation_momentum_selection__safe-starter__v002.md",
+      "backtest_py": "strategies/low_correlation_momentum_selection/backtest.py",
+      "bt_version": "86f922c15c",
+      "stale": false,
+      "params": {
+        "corr": 0.9,
+        "k": 3,
+        "max_candles": 231,
+        "stop_loss_pct": 5
+      },
+      "iter": 1077,
+      "is_yearly_pct": 8.93,
+      "oos_yearly_pct": 9.15,
+      "conservative_yearly_pct": 8.93,
+      "worst_max_dd_pct": -26.11,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 38.0,
+      "is_win_rate": 46.55,
+      "oos_win_rate": 52.94,
+      "is_trades": 116,
+      "oos_trades": 102,
+      "oos_efficiency": 1.025,
+      "largest_loss_pct": -5.12,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-03-02 00:00:00+00:00",
+            "entry_price": 26.016303
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "low_correlation_momentum_selection",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/low_correlation_momentum_selection/low_correlation_momentum_selection__balanced__v001.md",
+      "backtest_py": "strategies/low_correlation_momentum_selection/backtest.py",
+      "bt_version": "86f922c15c",
+      "stale": false,
+      "params": {
+        "corr": 0.65,
+        "k": 3,
+        "max_candles": 294,
+        "stop_loss_pct": 8
+      },
+      "iter": 257,
+      "is_yearly_pct": 11.99,
+      "oos_yearly_pct": 6.13,
+      "conservative_yearly_pct": 6.13,
+      "worst_max_dd_pct": -24.66,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 41.0,
+      "is_win_rate": 61.9,
+      "oos_win_rate": 47.19,
+      "is_trades": 84,
+      "oos_trades": 89,
+      "oos_efficiency": 0.511,
+      "largest_loss_pct": -7.03,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 28.576484
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "minimum_variance_trend_basket",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/minimum_variance_trend_basket/minimum_variance_trend_basket__max-income__v001.md",
+      "backtest_py": "strategies/minimum_variance_trend_basket/backtest.py",
+      "bt_version": "7dbf9b5ce0",
+      "stale": false,
+      "params": {
+        "max_candles": 420,
+        "n": 84,
+        "stop_loss_pct": 10
+      },
+      "iter": 179,
+      "is_yearly_pct": 5.66,
+      "oos_yearly_pct": 3.52,
+      "conservative_yearly_pct": 3.52,
+      "worst_max_dd_pct": -28.51,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 35.0,
+      "is_win_rate": 50.62,
+      "oos_win_rate": 42.72,
+      "is_trades": 81,
+      "oos_trades": 103,
+      "oos_efficiency": 0.622,
+      "largest_loss_pct": -10.42,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2025-07-01 00:00:00+00:00",
+            "entry_price": 28.773376
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 103.411011
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 752.04547
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "minimum_variance_trend_basket",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/minimum_variance_trend_basket/minimum_variance_trend_basket__balanced__v001.md",
+      "backtest_py": "strategies/minimum_variance_trend_basket/backtest.py",
+      "bt_version": "7dbf9b5ce0",
+      "stale": false,
+      "params": {
+        "max_candles": 420,
+        "n": 63,
+        "stop_loss_pct": 18
+      },
+      "iter": 180,
+      "is_yearly_pct": 5.62,
+      "oos_yearly_pct": 3.39,
+      "conservative_yearly_pct": 3.39,
+      "worst_max_dd_pct": -32.44,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 31.0,
+      "is_win_rate": 51.19,
+      "oos_win_rate": 47.17,
+      "is_trades": 84,
+      "oos_trades": 106,
+      "oos_efficiency": 0.603,
+      "largest_loss_pct": -18.09,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2025-07-01 00:00:00+00:00",
+            "entry_price": 29.120306
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 103.924449
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 753.769437
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "monthly_loser_rebound_basket",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/monthly_loser_rebound_basket/monthly_loser_rebound_basket__max-income__v001.md",
+      "backtest_py": "strategies/monthly_loser_rebound_basket/backtest.py",
+      "bt_version": "8b81321b31",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 147,
+        "stop_loss_pct": 28
+      },
+      "iter": 2544,
+      "is_yearly_pct": 5.22,
+      "oos_yearly_pct": 8.58,
+      "conservative_yearly_pct": 5.22,
+      "worst_max_dd_pct": -34.34,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 29.0,
+      "is_win_rate": 65.0,
+      "oos_win_rate": 62.59,
+      "is_trades": 320,
+      "oos_trades": 294,
+      "oos_efficiency": 1.644,
+      "largest_loss_pct": -13.43,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLB",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 53.245969
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 56.53762
+          },
+          {
+            "symbol": "XLK",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 196.929056
+          },
+          {
+            "symbol": "XLRE",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 43.172948
+          },
+          {
+            "symbol": "XLY",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 116.925066
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "monthly_loser_rebound_basket",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/monthly_loser_rebound_basket/monthly_loser_rebound_basket__balanced__v001.md",
+      "backtest_py": "strategies/monthly_loser_rebound_basket/backtest.py",
+      "bt_version": "8b81321b31",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 315,
+        "stop_loss_pct": 28
+      },
+      "iter": 2545,
+      "is_yearly_pct": 5.01,
+      "oos_yearly_pct": 8.66,
+      "conservative_yearly_pct": 5.01,
+      "worst_max_dd_pct": -38.86,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 26.0,
+      "is_win_rate": 64.86,
+      "oos_win_rate": 62.33,
+      "is_trades": 313,
+      "oos_trades": 292,
+      "oos_efficiency": 1.729,
+      "largest_loss_pct": -13.43,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLB",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 53.245969
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 56.549908
+          },
+          {
+            "symbol": "XLK",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 196.929056
+          },
+          {
+            "symbol": "XLRE",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 43.172948
+          },
+          {
+            "symbol": "XLY",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 116.925066
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "multi_horizon_rank_rotation",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/multi_horizon_rank_rotation/multi_horizon_rank_rotation__max-income__v001.md",
+      "backtest_py": "strategies/multi_horizon_rank_rotation/backtest.py",
+      "bt_version": "01c28d73a1",
+      "stale": false,
+      "params": {
+        "k": 3,
+        "max_candles": 231,
+        "stop_loss_pct": 15.0
+      },
+      "iter": 2085,
+      "is_yearly_pct": 13.13,
+      "oos_yearly_pct": 7.7,
+      "conservative_yearly_pct": 7.7,
+      "worst_max_dd_pct": -26.24,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 38.0,
+      "is_win_rate": 58.26,
+      "oos_win_rate": 51.64,
+      "is_trades": 115,
+      "oos_trades": 122,
+      "oos_efficiency": 0.586,
+      "largest_loss_pct": -5.44,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 29.358805
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 103.721109
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 760.350514
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "multi_horizon_rank_rotation",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/multi_horizon_rank_rotation/multi_horizon_rank_rotation__balanced__v001.md",
+      "backtest_py": "strategies/multi_horizon_rank_rotation/backtest.py",
+      "bt_version": "01c28d73a1",
+      "stale": false,
+      "params": {
+        "k": 5,
+        "max_candles": 441,
+        "stop_loss_pct": 14
+      },
+      "iter": 2086,
+      "is_yearly_pct": 9.66,
+      "oos_yearly_pct": 8.85,
+      "conservative_yearly_pct": 8.85,
+      "worst_max_dd_pct": -23.53,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 42.0,
+      "is_win_rate": 55.05,
+      "oos_win_rate": 45.05,
+      "is_trades": 109,
+      "oos_trades": 111,
+      "oos_efficiency": 0.916,
+      "largest_loss_pct": -4.78,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2025-08-01 00:00:00+00:00",
+            "entry_price": 24.18179
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 727.115271
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "ratio_zscore_pairs",
+      "tag": null,
+      "symbols": [
+        "KO",
+        "PEP"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/ratio_zscore_pairs/ratio_zscore_pairs__max-income__v002.md",
+      "backtest_py": "strategies/ratio_zscore_pairs/backtest.py",
+      "bt_version": "c920f7da44",
+      "stale": false,
+      "params": {
+        "leg_stop_pct": 13,
+        "max_candles": 40,
+        "n": 100,
+        "pair_stop_pct": 4.0,
+        "z": 1.0
+      },
+      "iter": 6188,
+      "is_yearly_pct": 0.69,
+      "oos_yearly_pct": 0.18,
+      "conservative_yearly_pct": 0.18,
+      "worst_max_dd_pct": -11.07,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 90.0,
+      "is_win_rate": 69.57,
+      "oos_win_rate": 57.58,
+      "is_trades": 23,
+      "oos_trades": 33,
+      "oos_efficiency": 0.261,
+      "largest_loss_pct": -4.85,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "ratio_zscore_pairs",
+      "tag": null,
+      "symbols": [
+        "KO",
+        "PEP"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/ratio_zscore_pairs/ratio_zscore_pairs__balanced__v002.md",
+      "backtest_py": "strategies/ratio_zscore_pairs/backtest.py",
+      "bt_version": "c920f7da44",
+      "stale": false,
+      "params": {
+        "leg_stop_pct": 12,
+        "max_candles": 40,
+        "n": 100,
+        "pair_stop_pct": 4.0,
+        "z": 1.0
+      },
+      "iter": 6189,
+      "is_yearly_pct": 0.72,
+      "oos_yearly_pct": 0.18,
+      "conservative_yearly_pct": 0.18,
+      "worst_max_dd_pct": -11.07,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 90.0,
+      "is_win_rate": 69.57,
+      "oos_win_rate": 57.58,
+      "is_trades": 23,
+      "oos_trades": 33,
+      "oos_efficiency": 0.25,
+      "largest_loss_pct": -4.85,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "sector_roc_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/sector_roc_rotation/sector_roc_rotation__max-income__v002.md",
+      "backtest_py": "strategies/sector_roc_rotation/backtest.py",
+      "bt_version": "0771a883af",
+      "stale": false,
+      "params": {
+        "k": 1,
+        "max_candles": 147,
+        "n": 189,
+        "stop_loss_pct": 21
+      },
+      "iter": 12686,
+      "is_yearly_pct": 11.46,
+      "oos_yearly_pct": 4.51,
+      "conservative_yearly_pct": 4.51,
+      "worst_max_dd_pct": -29.17,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 34.0,
+      "is_win_rate": 62.71,
+      "oos_win_rate": 48.98,
+      "is_trades": 59,
+      "oos_trades": 49,
+      "oos_efficiency": 0.394,
+      "largest_loss_pct": -12.38,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLE",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 58.360707
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "sector_roc_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/sector_roc_rotation/sector_roc_rotation__balanced__v002.md",
+      "backtest_py": "strategies/sector_roc_rotation/backtest.py",
+      "bt_version": "0771a883af",
+      "stale": false,
+      "params": {
+        "k": 8,
+        "max_candles": 210,
+        "n": 252,
+        "stop_loss_pct": 9
+      },
+      "iter": 12687,
+      "is_yearly_pct": 8.99,
+      "oos_yearly_pct": 7.06,
+      "conservative_yearly_pct": 7.06,
+      "worst_max_dd_pct": -20.32,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 49.0,
+      "is_win_rate": 68.12,
+      "oos_win_rate": 54.19,
+      "is_trades": 160,
+      "oos_trades": 179,
+      "oos_efficiency": 0.785,
+      "largest_loss_pct": -1.22,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLB",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 51.094857
+          },
+          {
+            "symbol": "XLE",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 52.869212
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 56.974733
+          },
+          {
+            "symbol": "XLP",
+            "since": "2026-08-03 00:00:00+00:00",
+            "entry_price": 85.305741
+          },
+          {
+            "symbol": "XLRE",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 43.597807
+          },
+          {
+            "symbol": "XLV",
+            "since": "2026-06-01 00:00:00+00:00",
+            "entry_price": 147.348317
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "sector_roc_rotation",
+      "tag": null,
+      "symbols": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/sector_roc_rotation/sector_roc_rotation__safe-starter__v002.md",
+      "backtest_py": "strategies/sector_roc_rotation/backtest.py",
+      "bt_version": "0771a883af",
+      "stale": false,
+      "params": {
+        "k": 8,
+        "max_candles": 189,
+        "n": 357,
+        "stop_loss_pct": 2
+      },
+      "iter": 12688,
+      "is_yearly_pct": 5.28,
+      "oos_yearly_pct": 5.66,
+      "conservative_yearly_pct": 5.28,
+      "worst_max_dd_pct": -16.56,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 60.0,
+      "is_win_rate": 28.62,
+      "oos_win_rate": 26.77,
+      "is_trades": 325,
+      "oos_trades": 310,
+      "oos_efficiency": 1.072,
+      "largest_loss_pct": -0.64,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "XLB",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 48.354502
+          },
+          {
+            "symbol": "XLE",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 53.081374
+          },
+          {
+            "symbol": "XLF",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 53.265975
+          },
+          {
+            "symbol": "XLP",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 89.866948
+          },
+          {
+            "symbol": "XLU",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 43.322994
+          },
+          {
+            "symbol": "XLV",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 159.133946
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "single_etf_volatility_target",
+      "tag": null,
+      "symbols": [
+        "SPY"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/single_etf_volatility_target/single_etf_volatility_target__max-income__v002.md",
+      "backtest_py": "strategies/single_etf_volatility_target/backtest.py",
+      "bt_version": "e2f6a72d5f",
+      "stale": false,
+      "params": {
+        "max_candles": 441,
+        "stop_loss_pct": 7,
+        "target": 0.28
+      },
+      "iter": 12686,
+      "is_yearly_pct": 10.83,
+      "oos_yearly_pct": 8.11,
+      "conservative_yearly_pct": 8.11,
+      "worst_max_dd_pct": -25.41,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 39.0,
+      "is_win_rate": 68.75,
+      "oos_win_rate": 66.67,
+      "is_trades": 16,
+      "oos_trades": 12,
+      "oos_efficiency": 0.749,
+      "largest_loss_pct": -7.12,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 717.829936
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "single_etf_volatility_target",
+      "tag": null,
+      "symbols": [
+        "SPY"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/single_etf_volatility_target/single_etf_volatility_target__balanced__v002.md",
+      "backtest_py": "strategies/single_etf_volatility_target/backtest.py",
+      "bt_version": "e2f6a72d5f",
+      "stale": false,
+      "params": {
+        "max_candles": 210,
+        "stop_loss_pct": 13,
+        "target": 0.03
+      },
+      "iter": 12687,
+      "is_yearly_pct": 2.22,
+      "oos_yearly_pct": 2.06,
+      "conservative_yearly_pct": 2.06,
+      "worst_max_dd_pct": -5.0,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 100.0,
+      "is_win_rate": 72.0,
+      "oos_win_rate": 50.0,
+      "is_trades": 25,
+      "oos_trades": 16,
+      "oos_efficiency": 0.928,
+      "largest_loss_pct": -3.58,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 730.640981
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "single_etf_volatility_target",
+      "tag": null,
+      "symbols": [
+        "SPY"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/single_etf_volatility_target/single_etf_volatility_target__safe-starter__v002.md",
+      "backtest_py": "strategies/single_etf_volatility_target/backtest.py",
+      "bt_version": "e2f6a72d5f",
+      "stale": false,
+      "params": {
+        "max_candles": 315,
+        "stop_loss_pct": 7,
+        "target": 0.03
+      },
+      "iter": 12688,
+      "is_yearly_pct": 2.08,
+      "oos_yearly_pct": 2.19,
+      "conservative_yearly_pct": 2.08,
+      "worst_max_dd_pct": -5.36,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 100.0,
+      "is_win_rate": 78.95,
+      "oos_win_rate": 46.15,
+      "is_trades": 19,
+      "oos_trades": 13,
+      "oos_efficiency": 1.053,
+      "largest_loss_pct": -2.7,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 730.640981
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "stock_bond_paired_switch",
+      "tag": null,
+      "symbols": [
+        "SPY",
+        "TLT"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/stock_bond_paired_switch/stock_bond_paired_switch__max-income__v001.md",
+      "backtest_py": "strategies/stock_bond_paired_switch/backtest.py",
+      "bt_version": "c52945f714",
+      "stale": false,
+      "params": {
+        "max_candles": 252,
+        "n": 84,
+        "stop_loss_pct": 20
+      },
+      "iter": 6304,
+      "is_yearly_pct": 9.97,
+      "oos_yearly_pct": 5.25,
+      "conservative_yearly_pct": 5.25,
+      "worst_max_dd_pct": -23.31,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 43.0,
+      "is_win_rate": 60.71,
+      "oos_win_rate": 51.61,
+      "is_trades": 28,
+      "oos_trades": 31,
+      "oos_efficiency": 0.527,
+      "largest_loss_pct": -8.39,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 717.829936
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "stock_bond_paired_switch",
+      "tag": null,
+      "symbols": [
+        "SPY",
+        "TLT"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/stock_bond_paired_switch/stock_bond_paired_switch__balanced__v001.md",
+      "backtest_py": "strategies/stock_bond_paired_switch/backtest.py",
+      "bt_version": "c52945f714",
+      "stale": false,
+      "params": {
+        "max_candles": 252,
+        "n": 42,
+        "stop_loss_pct": 20
+      },
+      "iter": 6305,
+      "is_yearly_pct": 6.17,
+      "oos_yearly_pct": 5.54,
+      "conservative_yearly_pct": 5.54,
+      "worst_max_dd_pct": -29.78,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 34.0,
+      "is_win_rate": 56.52,
+      "oos_win_rate": 47.62,
+      "is_trades": 46,
+      "oos_trades": 42,
+      "oos_efficiency": 0.898,
+      "largest_loss_pct": -9.24,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "TLT",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 81.854551
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "stock_bond_paired_switch",
+      "tag": null,
+      "symbols": [
+        "SPY",
+        "TLT"
+      ],
+      "profile": "safe-starter",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/stock_bond_paired_switch/stock_bond_paired_switch__safe-starter__v001.md",
+      "backtest_py": "strategies/stock_bond_paired_switch/backtest.py",
+      "bt_version": "c52945f714",
+      "stale": false,
+      "params": {
+        "max_candles": 273,
+        "n": 252,
+        "stop_loss_pct": 25
+      },
+      "iter": 6306,
+      "is_yearly_pct": 5.67,
+      "oos_yearly_pct": 8.34,
+      "conservative_yearly_pct": 5.67,
+      "worst_max_dd_pct": -27.54,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 36.0,
+      "is_win_rate": 62.5,
+      "oos_win_rate": 50.0,
+      "is_trades": 24,
+      "oos_trades": 18,
+      "oos_efficiency": 1.471,
+      "largest_loss_pct": -12.7,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "SPY",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 764.589293
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "trend_equal_weight_global",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/trend_equal_weight_global/trend_equal_weight_global__max-income__v001.md",
+      "backtest_py": "strategies/trend_equal_weight_global/backtest.py",
+      "bt_version": "edd6a64054",
+      "stale": false,
+      "params": {
+        "max_candles": 231,
+        "n": 150,
+        "stop_loss_pct": 24
+      },
+      "iter": 172,
+      "is_yearly_pct": 9.12,
+      "oos_yearly_pct": 7.81,
+      "conservative_yearly_pct": 7.81,
+      "worst_max_dd_pct": -22.07,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 45.0,
+      "is_win_rate": 48.31,
+      "oos_win_rate": 45.0,
+      "is_trades": 118,
+      "oos_trades": 120,
+      "oos_efficiency": 0.856,
+      "largest_loss_pct": -4.95,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-07-01 00:00:00+00:00",
+            "entry_price": 30.206304
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 746.750135
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "trend_equal_weight_global",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/trend_equal_weight_global/trend_equal_weight_global__balanced__v001.md",
+      "backtest_py": "strategies/trend_equal_weight_global/backtest.py",
+      "bt_version": "edd6a64054",
+      "stale": false,
+      "params": {
+        "max_candles": 294,
+        "n": 180,
+        "stop_loss_pct": 15.0
+      },
+      "iter": 173,
+      "is_yearly_pct": 8.73,
+      "oos_yearly_pct": 6.91,
+      "conservative_yearly_pct": 6.91,
+      "worst_max_dd_pct": -26.25,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 38.0,
+      "is_win_rate": 45.54,
+      "oos_win_rate": 46.15,
+      "is_trades": 101,
+      "oos_trades": 104,
+      "oos_efficiency": 0.792,
+      "largest_loss_pct": -5.03,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 32.37971
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 101.598909
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 729.868211
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "vol_adjusted_momentum_rotation",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "max-income",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/vol_adjusted_momentum_rotation/vol_adjusted_momentum_rotation__max-income__v001.md",
+      "backtest_py": "strategies/vol_adjusted_momentum_rotation/backtest.py",
+      "bt_version": "f0b0a8922e",
+      "stale": false,
+      "params": {
+        "k": 3,
+        "max_candles": 378,
+        "n": 63,
+        "stop_loss_pct": 22
+      },
+      "iter": 285,
+      "is_yearly_pct": 11.18,
+      "oos_yearly_pct": 8.27,
+      "conservative_yearly_pct": 8.27,
+      "worst_max_dd_pct": -25.81,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 39.0,
+      "is_win_rate": 58.91,
+      "oos_win_rate": 53.54,
+      "is_trades": 129,
+      "oos_trades": 127,
+      "oos_efficiency": 0.74,
+      "largest_loss_pct": -7.99,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-09-01 00:00:00+00:00",
+            "entry_price": 31.95853
+          },
+          {
+            "symbol": "TLT",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 81.854551
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    },
+    {
+      "strategy": "vol_adjusted_momentum_rotation",
+      "tag": null,
+      "symbols": [
+        "DBC",
+        "EEM",
+        "EFA",
+        "GLD",
+        "IEF",
+        "SPY",
+        "TLT",
+        "VNQ"
+      ],
+      "profile": "balanced",
+      "kind": "base",
+      "symbol_pick_supported": null,
+      "confidence_note": "",
+      "variant_file": "strategies/vol_adjusted_momentum_rotation/vol_adjusted_momentum_rotation__balanced__v001.md",
+      "backtest_py": "strategies/vol_adjusted_momentum_rotation/backtest.py",
+      "bt_version": "f0b0a8922e",
+      "stale": false,
+      "params": {
+        "k": 4,
+        "max_candles": 168,
+        "n": 252,
+        "stop_loss_pct": 24
+      },
+      "iter": 286,
+      "is_yearly_pct": 10.15,
+      "oos_yearly_pct": 5.23,
+      "conservative_yearly_pct": 5.23,
+      "worst_max_dd_pct": -26.97,
+      "position_pct_backtested": 100.0,
+      "position_pct_for_10pct_dd": 37.0,
+      "is_win_rate": 64.08,
+      "oos_win_rate": 53.33,
+      "is_trades": 103,
+      "oos_trades": 90,
+      "oos_efficiency": 0.515,
+      "largest_loss_pct": -6.42,
+      "robust_frac": 1.0,
+      "oos_period": [
+        "2016-01-04",
+        "2026-11-23"
+      ],
+      "signal_now": {
+        "long": [
+          {
+            "symbol": "DBC",
+            "since": "2026-04-01 00:00:00+00:00",
+            "entry_price": 28.623851
+          },
+          {
+            "symbol": "EFA",
+            "since": "2026-10-01 00:00:00+00:00",
+            "entry_price": 103.411011
+          },
+          {
+            "symbol": "SPY",
+            "since": "2026-05-01 00:00:00+00:00",
+            "entry_price": 719.344233
+          },
+          {
+            "symbol": "VNQ",
+            "since": "2026-11-02 00:00:00+00:00",
+            "entry_price": 94.148239
+          }
+        ],
+        "data_until": "2026-11-25 00:00:00+00:00"
+      }
+    }
+  ]
+}
