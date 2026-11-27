@@ -245,7 +245,7 @@ h1.display { font-size: var(--fs-hero); }
 .feed.err { color: var(--fg); }
 .feed .t { margin-left: auto; color: var(--faint); font-size: var(--fs-small); }
 
-.shell { margin-left: var(--side); min-width: 0; }
+.shell { margin-left: var(--side); min-width: 0; overflow-x: clip; }
 .topbar {
   position: sticky; top: 0; z-index: 20; height: var(--top); display: flex; align-items: center; gap: 20px;
   padding: 0 0 0 var(--pad); background: var(--night); border-bottom: 1px solid var(--line);

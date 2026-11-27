@@ -9,6 +9,20 @@ const WATCH = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "SPY"];
 const state = { assets: [], bySym: {}, prevPrice: {}, view: null, timer: null, lastOk: 0, loadError: null, feed: null };
 
 /* ------------------------------------------------------------ helpers --- */
+/* ARCO page head: numbered eyebrow, the huge Anton title ending in a full stop, a ghost word behind */
+const PAGE_HEADS = { overview: ["01", "Live", "Markets.", "Live"], portfolio: ["02", "Paper portfolio", "Portfolio.", "Paper"], data: ["04", "Data health", "Data.", "Store"] };
+function pageHead(key, lede = "", ledeId = "", extra = "") {
+  const [n, eb, title, ghost] = PAGE_HEADS[key];
+  return `<div class="title-row"><span class="ghost-word" aria-hidden="true">${esc(ghost)}</span><div>
+    <p class="eyebrow"><span class="n">${n}</span><span class="dash"></span>${esc(eb)}</p>
+    <h1>${esc(title)}</h1>${ledeId || lede ? `<p class="lede"${ledeId ? ` id="${ledeId}"` : ""}>${lede}</p>` : ""}</div>${extra}</div>`;
+}
+/* a value already formatted, set as an Anton figure with its unit small in the accent: "+0.84%" -> +0.84 % */
+const figPct = (str) => str === "—" ? '<span class="fig muted">—</span>' : `<span class="fig">${esc(str.replace(/%$/, ""))}<small>%</small></span>`;
+const figUsd = (str) => { const m = /^(-?)\$(.*)$/.exec(str); return m ? `<span class="fig">${m[1]}<small class="pre">$</small>${esc(m[2])}</span>` : `<span class="fig">${esc(str)}</span>`; };
+const arrow = (v) => v == null || Math.abs(v) < 1e-9 ? "" : v > 0 ? '<i class="arw" aria-hidden="true">▲</i>' : '<i class="arw" aria-hidden="true">▼</i>';
+/* the price flash: compares with the previous poll; only changed prices light up */
+const flashCls = (sym, price) => { const prev = state.prevPrice[sym]; return prev != null && price != null && prev !== price ? (price > prev ? "flash-up" : "flash-down") : ""; };
 const $ = (sel, el = document) => el.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -238,8 +252,7 @@ function assetTable(kind, assets) {
     return `<th class="${c || ""}${sortable ? " sortable" : ""}${sorted ? " sorted" + (s.asc ? " asc" : "") : ""}" data-k="${k}"${sortable ? ` tabindex="0" aria-sort="${sorted ? (s.asc ? "ascending" : "descending") : "none"}"` : ""}>${label}</th>`;
   }).join("")}</tr></thead>
     <tbody>${rows.map((a) => {
-      const prev = state.prevPrice[a.symbol];
-      const flash = prev != null && a.price != null && prev !== a.price ? (a.price > prev ? "flash-up" : "flash-down") : "";
+      const flash = flashCls(a.symbol, a.price);
       const pos = a.high_24h > a.low_24h ? Math.min(100, Math.max(0, ((a.price - a.low_24h) / (a.high_24h - a.low_24h)) * 100)) : 50;
       const vol = a.symbol.startsWith("^") ? null : a.volume_24h;
       return `<tr class="click" data-sym="${esc(a.symbol)}" tabindex="0">
@@ -249,11 +262,11 @@ function assetTable(kind, assets) {
           <div class="sy"><span class="hide-sm">${esc(a.symbol)}</span><span class="m-sub num">${esc(base(a.symbol))} · 7d ${fmtPct(a.change_7d)}</span></div>
         </div></div></td>
         <td class="num ${flash}">${a.price == null ? '<span class="muted">—</span>' : money(a, a.price)}<span class="m-sub ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></td>
-        <td class="num hide-sm ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</td>
-        <td class="num hide-sm">${fmtPct(a.change_7d)}</td>
+        <td class="num hide-sm ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</td>
+        <td class="num hide-sm ${tone(a.change_7d)}">${fmtPct(a.change_7d)}</td>
         <td class="hide-md">${a.price == null ? '<span class="muted">—</span>' : `<span class="range num">${fmtPrice(a.low_24h)}<span class="track"><i style="left:${pos}%"></i></span>${fmtPrice(a.high_24h)}</span>`}</td>
         <td class="num hide-sm">${vol == null ? '<span class="muted">—</span>' : fmtCompact(vol, curPrefix(a))}</td>
-        <td class="hide-md">${sparkline(a.spark)}</td>
+        <td class="hide-md ${tone(a.change_7d)}">${sparkline(a.spark)}</td>
         <td class="muted hide-lg">${a.time ? ago(a.time) : "—"}</td>
       </tr>`;
     }).join("")}</tbody></table></div>${more}`;
@@ -272,7 +285,7 @@ function moversList(assets, n = 8) {
       return `${grp}<li class="mover" data-sym="${esc(a.symbol)}" tabindex="0" title="${esc(a.name)} · ${kindLabel(a)} · ${sessionWord(a)}">
         <span class="s">${esc(base(a.symbol))}</span>
         <span class="track"><span class="bar ${a.change_24h >= 0 ? "up" : "down"}" style="width:${w.toFixed(2)}%"></span></span>
-        <span class="v num ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></li>`;
+        <span class="v num ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</span></li>`;
     }).join("")}</ol>
     <div class="axis" aria-hidden="true"><i></i><span class="num"><b style="font-weight:400">${fmtPct(-step, 0)}</b><b style="font-weight:400">0</b><b style="font-weight:400">${fmtPct(step, 0)}</b></span><i></i></div>`,
     n: total,
@@ -325,7 +338,7 @@ const median = (v) => { if (!v.length) return null; const s = [...v].sort((a, b)
 function breadthHTML() {
   return TAPES.map(([kind, label]) => `
     <div class="tape-row">
-      <div class="tape-label"><div class="k">${label}</div><div class="v" id="tl-${kind}"></div></div>
+      <div class="tape-label"><div class="k">${label}</div><div class="md" id="tm-${kind}"></div><div class="v" id="tl-${kind}"></div></div>
       <div class="tape" id="tape-${kind}" data-kind="${kind}" role="img"></div>
     </div>`).join("") + `<div class="scale" aria-hidden="true"><span id="tape-scale"></span><span class="hide-sm">best to worst</span></div>`;
 }
@@ -373,13 +386,14 @@ const overviewView = {
   async mount(el) {
     if (!state.assets.length) await loadOverview();
     if (!state.assets.length) {
-      el.innerHTML = `<div class="title-row"><div><h1>Markets</h1></div></div><div class="panel">${errorBlock("market prices")}</div>`;
+      el.innerHTML = `${pageHead("overview")}<div class="panel">${errorBlock("market prices")}</div>`;
       return;
     }
     if (!state.bySym[this.watch]) this.watch = WATCH.find((s) => state.bySym[s]) || state.assets[0].symbol;
     el.classList.add("rise");
     el.innerHTML = `
-      <div class="title-row"><div><h1>Markets</h1><p class="lede" id="ov-lede"></p></div></div>
+      ${pageHead("overview", "", "ov-lede")}
+      <section class="ticker mb" aria-label="24 h movers, scrolling"><div class="ticker-track" id="ticker"></div></section>
       <section class="panel mb" aria-label="Market breadth">
         <div class="panel-head"><h2>Market breadth</h2><div class="tape-read" id="tape-read"></div></div>
         <div class="breadth" id="breadth">${breadthHTML()}</div>
@@ -395,9 +409,9 @@ const overviewView = {
           <div id="movers"></div>
         </section>
       </div>
-      <section class="panel mb"><div class="panel-head"><h2>Coins</h2><span class="sub">Binance spot · by market cap</span></div><div id="t-crypto"></div></section>
-      <section class="panel mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance</span></div><div id="t-etf"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap</span></div><div id="t-stock"></div></section>`;
+      <section class="panel ov-tables mb"><div class="panel-head"><h2>Coins</h2><span class="sub">Binance spot · by market cap</span></div><div id="t-crypto"></div></section>
+      <section class="panel ov-tables mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance</span></div><div id="t-etf"></div></section>
+      <section class="panel ov-tables"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap</span></div><div id="t-stock"></div></section>`;
     $("#watch").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b || b.dataset.sym === this.watch) return;
       this.watch = b.dataset.sym; localStorage.setItem("watch", this.watch);
@@ -436,8 +450,9 @@ const overviewView = {
     $("#watch").innerHTML = list.map((a) => `
       <button role="tab" aria-selected="${a.symbol === this.watch}" class="${a.symbol === this.watch ? "on" : ""}" data-sym="${esc(a.symbol)}">
         <span class="k">${esc(a.type === "crypto" ? a.name : base(a.symbol) + " · " + a.name.replace(/^(State Street |iShares |Vanguard )?(SPDR )?/, ""))}</span>
-        <span class="v num">${money(a, a.price)}</span>
-        <span class="d num ${tone(a.change_24h)}">${fmtPct(a.change_24h)} <span class="muted">${sessionWord(a)}</span></span>
+        <span class="v num ${flashCls(a.symbol, a.price)}">${money(a, a.price)}</span>
+        <span class="d num ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)} <span class="muted">${sessionWord(a)}</span></span>
+        <span class="sp ${tone(a.change_7d)}">${sparkline(a.spark, 160, 34)}</span>
       </button>`).join("");
     const a = state.bySym[this.watch];
     $("#lead-what").textContent = this.leadSpec(a).what;
@@ -453,8 +468,18 @@ const overviewView = {
     this.renderWatch();
     const m = moversList(state.assets);
     $("#movers").innerHTML = m.html;
+    this.renderTicker();
     $("#movers-sub").textContent = `of ${m.n} assets`;
     this.renderTables();
+  },
+  /* the movers as a marquee: two identical runs so the loop has no seam; the track element survives
+     each poll (only its contents change), so the scroll never restarts */
+  renderTicker() {
+    const t = $("#ticker"); if (!t) return;
+    let rows = state.assets.filter((a) => a.change_24h != null).sort((x, y) => y.change_24h - x.change_24h);
+    if (rows.length > 16) rows = rows.slice(0, 8).concat(rows.slice(-8));
+    const run = (hidden) => `<span class="run"${hidden ? ' aria-hidden="true"' : ""}>${rows.map((a) => `<a href="#/asset/${encodeURIComponent(a.symbol)}"${hidden ? ' tabindex="-1"' : ""}><b>${esc(base(a.symbol))}</b><span class="num ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</span></a>`).join("")}</span>`;
+    t.innerHTML = run(false) + run(true);
   },
   renderBreadth(by) {
     const cap = breadthScale(state.assets);
@@ -462,6 +487,7 @@ const overviewView = {
       const list = by[kind], known = list.filter((a) => a.change_24h != null);
       const up = known.filter((a) => a.change_24h > 0).length, md = median(known.map((a) => a.change_24h));
       $("#tl-" + kind).innerHTML = `<b class="num">${up}</b> of <span class="num">${known.length}</span> up · median <span class="num ${tone(md)}">${fmtPct(md)}</span>`;
+      $("#tm-" + kind).innerHTML = `<span class="${tone(md)}">${arrow(md)}${figPct(fmtPct(md))}</span>`;
       $("#tape-" + kind).title = `${up} of ${known.length} ${kind === "crypto" ? "coins" : kind === "etf" ? "ETFs and indices" : "stocks"} up over the ${when}`;
       drawTape($("#tape-" + kind), list, cap);
     }
@@ -1011,9 +1037,9 @@ attachSearch($("#search"), $("#search-results"), (a) => { $("#search").value = "
 window.addEventListener("hashchange", route);
 function bootFrame() {
   const h = location.hash.replace(/^#\/?/, "");
-  const title = h === "portfolio" ? "Paper portfolio" : h === "data" ? "Data health" : h.startsWith("asset/") ? decodeURIComponent(h.slice(6)) : "Markets";
   const bar = (w, ht = 14) => `<span class="skel" style="width:${w};height:${ht}px"></span>`;
-  $("#app").innerHTML = `<div class="title-row"><div><h1>${esc(title)}</h1><p class="lede">${bar("34em")}</p></div></div>
+  const key = h === "portfolio" ? "portfolio" : h === "data" ? "data" : h.startsWith("asset/") ? null : "overview";
+  $("#app").innerHTML = `${key ? pageHead(key, bar("34em")) : `<div class="title-row"><div><h1>${esc(decodeURIComponent(h.slice(6)))}</h1></div></div>`}
     <section class="panel mb"><div class="panel-head"><h2>${h ? "Loading" : "Market breadth"}</h2></div><div class="breadth">${[1, 2, 3].map(() => `<div class="tape-row"><div class="tape-label">${bar("9em")}</div>${bar("100%", 40)}</div>`).join("")}</div></section>`;
 }
 bootFrame();
