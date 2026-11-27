@@ -1,0 +1,1 @@
+[2026-11-23T22:05:35Z] note: data check: strategy needs EURUSD 15m bars (forex). Not in the project: no forex data, no EUR currency ETF (FXE etc.) in data/etf/1d, no EUR pair in data/crypto/1m; Yahoo 1m stock/ETF data only covers ~1 month (since 2026-10-26). Stopped before formalizing to ask the user which substitute (if any) to use.

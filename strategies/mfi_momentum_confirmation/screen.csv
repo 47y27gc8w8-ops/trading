@@ -1,0 +1,61 @@
+symbol,status,is_years,n_samples,share_profitable_is,median_is_yearly,best_is_yearly,best_is_params,default_is_yearly,default_oos_yearly,buy_hold_is_yearly,n_eligible,rank_score,share_profitable_h1,median_h1_yearly,share_profitable_h2,median_h2_yearly
+BTCUSDT,ok,5.9,64,0.3594,-0.71,6.48,"{""level"": 70.0, ""max_candles"": 15, ""stop_atr"": 2.25, ""take_profit_atr"": 6.0}",1.71,-8.89,27.14,5,35.9303,0.4688,-0.37,0.4531,-0.7
+ETHUSDT,ok,5.9,64,0.6719,2.74,19.81,"{""level"": 60.0, ""max_candles"": 24, ""stop_atr"": 2.25, ""take_profit_atr"": 6.5}",1.28,-19.07,13.41,15,67.2149,0.7188,7.95,0.4062,-3.89
+BNBUSDT,ok,5.7,64,0.4531,0.1,21.83,"{""level"": 60.0, ""max_candles"": 87, ""stop_atr"": 3.5, ""take_profit_atr"": 4.5}",2.9,-4.58,74.76,4,45.3135,0.7344,5.16,0.3281,-4.67
+XRPUSDT,ok,5.2,64,0.5156,4.79,32.02,"{""level"": 70.0, ""max_candles"": 24, ""stop_atr"": 3.5, ""take_profit_atr"": 6.5}",-0.41,-17.39,4.98,3,51.6103,0.7969,15.94,0.0625,-6.67
+SOLUSDT,ok,2.9,64,0.6719,8.61,64.78,"{""level"": 72.5, ""max_candles"": 33, ""stop_atr"": 2.25, ""take_profit_atr"": 6.5}",0.56,-12.67,214.42,5,67.2736,0.5938,4.82,0.6562,6.4
+TRXUSDT,ok,5.1,64,0.4688,0.61,37.85,"{""level"": 65.0, ""max_candles"": 78, ""stop_atr"": 4.0, ""take_profit_atr"": 7.0}",-3.49,-4.2,53.95,4,46.8811,0.6406,8.96,0.1562,-7.17
+HYPEUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ZECUSDT,ok,4.3,64,0.2188,-5.65,23.33,"{""level"": 60.0, ""max_candles"": 42, ""stop_atr"": 2.5, ""take_profit_atr"": 3.0}",-7.42,51.61,-11.34,6,21.8184,0.4688,-0.9,0.2344,-9.06
+DOGEUSDT,ok,4.0,64,0.6562,10.41,66.85,"{""level"": 75.0, ""max_candles"": 15, ""stop_atr"": 4.75, ""take_profit_atr"": 6.5}",-1.67,-7.32,156.36,20,65.7292,0.8594,38.34,0.0781,-15.6
+LINKUSDT,ok,4.5,64,0.2344,-4.22,22.39,"{""level"": 65.0, ""max_candles"": 78, ""stop_atr"": 4.0, ""take_profit_atr"": 7.0}",-21.23,-14.82,37.91,6,23.3953,0.5781,2.93,0.1406,-11.05
+ADAUSDT,ok,5.2,64,0.6562,5.35,31.61,"{""level"": 77.5, ""max_candles"": 78, ""stop_atr"": 3.25, ""take_profit_atr"": 6.0}",3.52,-14.14,44.96,18,65.6784,0.7656,21.95,0.25,-8.75
+XLMUSDT,ok,5.1,64,0.4375,-0.75,27.19,"{""level"": 80.0, ""max_candles"": 114, ""stop_atr"": 4.75, ""take_profit_atr"": 6.0}",-13.63,1.42,-11.61,26,43.7425,0.6562,6.3,0.2656,-3.17
+BCHUSDT,ok,3.6,64,0.2812,-6.77,30.17,"{""level"": 85.0, ""max_candles"": 105, ""stop_atr"": 4.75, ""take_profit_atr"": 6.0}",-11.65,0.7,2.85,4,28.0573,0.2656,-17.36,0.6875,12.62
+NEARUSDT,ok,2.8,64,0.25,-4.06,23.06,"{""level"": 77.5, ""max_candles"": 33, ""stop_atr"": 4.25, ""take_profit_atr"": 5.5}",-39.06,14.56,-15.57,10,24.9594,0.3125,-11.87,0.3906,-3.14
+LTCUSDT,ok,5.6,64,0.3125,-4.43,9.42,"{""level"": 85.0, ""max_candles"": 105, ""stop_atr"": 4.75, ""take_profit_atr"": 6.0}",-3.84,-8.94,-8.55,6,31.2057,0.3906,-3.24,0.3906,-2.45
+AVAXUSDT,ok,2.8,64,0.4062,-4.51,44.83,"{""level"": 60.0, ""max_candles"": 78, ""stop_atr"": 3.5, ""take_profit_atr"": 7.0}",-7.79,-19.69,14.63,3,40.5799,0.4219,-8.1,0.5,0.04
+UNIUSDT,ok,2.8,64,0.0156,-13.62,0.94,"{""level"": 65.0, ""max_candles"": 15, ""stop_atr"": 1.0, ""take_profit_atr"": 3.5}",-15.84,-20.64,-37.01,0,1.4263,0.0156,-18.48,0.0781,-6.36
+GRAMUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+SUIUSDT,too little in-sample history (0.2 years < 2.0),,,,,,,,,,,,,,,
+HBARUSDT,ok,3.8,64,0.0938,-13.86,16.36,"{""level"": 60.0, ""max_candles"": 114, ""stop_atr"": 4.5, ""take_profit_atr"": 3.0}",-14.36,7.01,26.65,1,9.2364,0.2031,-16.78,0.2188,-7.71
+QNTUSDT,too little in-sample history (2.0 years < 2.0),,,,,,,,,,,,,,,
+TAOUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+SHIBUSDT,ok,2.2,64,0.1094,-5.64,14.01,"{""level"": 65.0, ""max_candles"": 51, ""stop_atr"": 4.5, ""take_profit_atr"": 4.5}",1.06,7.55,-41.9,4,10.8811,0.75,7.17,0.0,-17.88
+AAVEUSDT,ok,2.8,64,0.375,-2.7,19.58,"{""level"": 85.0, ""max_candles"": 33, ""stop_atr"": 4.5, ""take_profit_atr"": 5.0}",1.26,5.55,-36.49,9,37.473,0.5156,0.32,0.3594,-4.65
+PEPEUSDT,too little in-sample history (0.2 years < 2.0),,,,,,,,,,,,,,,
+ONDOUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ENAUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+WLFIUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ASTERUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+JSTUSDT,ok,2.9,64,0.3438,-3.41,27.31,"{""level"": 85.0, ""max_candles"": 105, ""stop_atr"": 2.0, ""take_profit_atr"": 4.5}",-25.64,-0.68,4.51,5,34.3409,0.5781,2.62,0.0312,-11.89
+DOTUSDT,ok,2.9,64,0.0,-15.9,,,-23.54,-8.28,-20.72,0,-0.159,0.0,-19.88,0.25,-10.08
+ICPUSDT,ok,2.2,64,0.2031,-1.41,52.22,"{""level"": 70.0, ""max_candles"": 15, ""stop_atr"": 2.25, ""take_profit_atr"": 6.0}",2.97,-9.59,-41.65,6,20.2984,0.0938,-20.15,0.8438,23.04
+MORPHOUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+SKYUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ETCUSDT,ok,5.1,64,0.5938,3.3,37.05,"{""level"": 82.5, ""max_candles"": 60, ""stop_atr"": 4.25, ""take_profit_atr"": 5.5}",-12.97,-2.43,34.38,3,59.408,0.7031,11.19,0.3438,-7.09
+WLDUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+PUMPUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+POLUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+NIGHTUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+JUPUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ARBUSDT,too little in-sample history (0.3 years < 2.0),,,,,,,,,,,,,,,
+ALGOUSDT,ok,4.1,64,0.125,-11.23,25.21,"{""level"": 70.0, ""max_candles"": 87, ""stop_atr"": 4.5, ""take_profit_atr"": 3.0}",-11.41,24.82,-3.76,4,12.3877,0.3906,-7.9,0.0312,-14.85
+RENDERUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ATOMUSDT,ok,4.2,64,0.0938,-10.04,13.44,"{""level"": 77.5, ""max_candles"": 33, ""stop_atr"": 4.25, ""take_profit_atr"": 5.5}",-17.85,9.27,36.75,1,9.2746,0.3125,-7.56,0.25,-10.91
+INJUSDT,ok,2.7,64,0.2344,-12.03,41.34,"{""level"": 80.0, ""max_candles"": 42, ""stop_atr"": 1.75, ""take_profit_atr"": 6.5}",32.12,-26.43,43.96,1,23.3173,0.0156,-28.23,0.6562,17.62
+NEXOUSDT,too little in-sample history (1.2 years < 2.0),,,,,,,,,,,,,,,
+CAKEUSDT,ok,2.4,64,0.0938,-7.42,25.32,"{""level"": 82.5, ""max_candles"": 96, ""stop_atr"": 3.0, ""take_profit_atr"": 6.5}",-12.19,3.31,-48.47,1,9.3008,0.1406,-12.64,0.375,-2.86
+STXUSDT,ok,3.7,64,0.1406,-12.93,15.99,"{""level"": 60.0, ""max_candles"": 78, ""stop_atr"": 3.5, ""take_profit_atr"": 7.0}",-17.98,-0.62,105.77,2,13.9332,0.3906,-5.6,0.0625,-20.0
+ETHFIUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+FILUSDT,ok,2.8,64,0.1094,-4.7,14.9,"{""level"": 62.5, ""max_candles"": 42, ""stop_atr"": 1.75, ""take_profit_atr"": 2.5}",-0.48,-9.9,-67.52,0,10.8905,0.4219,-4.95,0.4062,-6.52
+ZROUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+DASHUSDT,ok,4.3,64,0.2344,-8.23,21.88,"{""level"": 60.0, ""max_candles"": 78, ""stop_atr"": 3.5, ""take_profit_atr"": 7.0}",-29.5,-12.17,-20.35,5,23.3553,0.3438,-8.84,0.25,-4.6
+VETUSDT,ok,5.0,64,0.4219,-1.49,24.01,"{""level"": 65.0, ""max_candles"": 78, ""stop_atr"": 4.0, ""take_profit_atr"": 7.0}",-13.09,8.7,53.06,9,42.1726,0.5,0.68,0.2969,-5.22
+PYTHUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+FFUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+RAYUSDT,too little in-sample history (1.9 years < 2.0),,,,,,,,,,,,,,,
+APTUSDT,too little in-sample history (0.7 years < 2.0),,,,,,,,,,,,,,,
+TIAUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+KITEUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+AEROUSDT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,

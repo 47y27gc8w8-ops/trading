@@ -1,0 +1,75 @@
+symbol,status,is_years,n_samples,share_profitable_is,median_is_yearly,best_is_yearly,best_is_params,default_is_yearly,default_oos_yearly,buy_hold_is_yearly,n_eligible,rank_score
+SPY,ok,21.0,24,0.8333,4.97,10.34,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",6.31,8.98,9.34,20,83.383
+VOO,ok,4.1,24,0.1667,11.52,11.41,"{""fast"": 25, ""slow"": 150, ""trailing_stop_pct"": 20}",11.54,9.07,14.88,4,16.7819
+IVV,ok,14.4,24,0.7917,4.7,8.61,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",7.65,9.12,5.77,18,79.2136
+VTI,ok,13.3,24,0.75,6.63,10.1,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",9.33,8.75,9.06,17,75.0663
+QQQ,ok,15.6,24,1.0,5.04,7.69,"{""fast"": 50, ""slow"": 200, ""trailing_stop_pct"": 0.0}",7.69,16.4,2.03,23,100.0503
+DIA,ok,16.8,24,0.8333,2.36,4.64,"{""fast"": 50, ""slow"": 200, ""trailing_stop_pct"": 0.0}",4.64,5.83,5.72,19,83.3569
+IWM,ok,14.4,24,0.875,3.93,7.19,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",3.01,1.64,7.44,18,87.5393
+RSP,ok,11.5,24,0.6667,6.36,10.18,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",9.33,5.31,8.76,14,66.7302
+VEA,ok,7.2,24,0.375,-0.28,5.19,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",-0.41,4.77,4.29,8,37.4972
+VWO,ok,9.6,24,0.2917,-1.33,6.19,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",1.56,4.66,2.16,7,29.1534
+EFA,ok,13.1,24,0.9167,5.05,7.59,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",5.32,3.32,7.2,20,91.7172
+EEM,ok,11.5,24,0.625,0.94,9.26,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",5.82,3.82,7.56,15,62.5094
+VXUS,ok,3.7,24,0.0417,0.62,3.13,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",0.67,4.25,3.85,1,4.1729
+ACWI,ok,6.6,24,0.75,3.02,6.9,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",4.9,7.65,9.36,18,75.0302
+VT,ok,6.3,24,0.375,2.32,3.95,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",2.92,7.33,8.74,9,37.5232
+XLK,ok,15.8,24,0.9167,2.67,5.91,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",4.64,16.8,-0.64,21,91.6934
+XLF,ok,15.8,24,0.9167,2.5,5.26,"{""fast"": 50, ""slow"": 200, ""trailing_stop_pct"": 0.0}",5.26,6.12,2.97,21,91.6917
+XLE,ok,15.8,24,0.875,5.58,9.93,"{""fast"": 30, ""slow"": 280, ""trailing_stop_pct"": 25}",8.36,8.56,7.1,14,87.5559
+XLV,ok,15.8,24,0.8333,2.71,5.05,"{""fast"": 60, ""slow"": 270, ""trailing_stop_pct"": 11}",3.64,3.15,7.57,19,83.3605
+XLY,ok,15.8,24,1.0,4.38,7.47,"{""fast"": 75, ""slow"": 290, ""trailing_stop_pct"": 24}",3.6,4.94,8.59,22,100.0439
+XLP,ok,15.8,24,0.9583,5.42,7.32,"{""fast"": 80, ""slow"": 250, ""trailing_stop_pct"": 20}",6.2,2.81,8.37,13,95.8875
+XLI,ok,15.8,24,0.9167,5.25,6.54,"{""fast"": 45, ""slow"": 170, ""trailing_stop_pct"": 24}",5.77,4.48,6.57,21,91.7191
+XLU,ok,15.8,24,0.7917,6.72,8.93,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",8.63,5.53,7.28,18,79.2339
+XLB,ok,15.8,24,0.8333,3.21,4.93,"{""fast"": 50, ""slow"": 200, ""trailing_stop_pct"": 0.0}",4.93,3.14,7.33,18,83.3654
+XLRE,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+XLC,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+SMH,ok,14.4,24,0.9167,1.6,5.69,"{""fast"": 45, ""slow"": 170, ""trailing_stop_pct"": 24}",4.36,24.79,1.36,21,91.6827
+SOXX,ok,13.3,24,0.875,4.09,9.29,"{""fast"": 25, ""slow"": 150, ""trailing_stop_pct"": 20}",6.81,23.55,8.82,20,87.5409
+ARKK,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+TLT,ok,12.2,24,1.0,3.54,4.82,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",3.23,0.56,6.88,3,100.0354
+IEF,ok,12.2,24,1.0,3.02,3.93,"{""fast"": 30, ""slow"": 280, ""trailing_stop_pct"": 25}",2.99,1.03,5.14,17,100.0302
+SHY,ok,12.2,24,0.5,1.71,1.85,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",1.83,1.89,2.12,12,50.0171
+AGG,ok,11.1,24,0.75,2.46,3.37,"{""fast"": 10, ""slow"": 100, ""trailing_stop_pct"": 20}",1.3,1.29,4.14,17,75.0246
+BND,ok,7.5,24,0.5417,2.67,3.54,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",2.06,1.18,4.29,10,54.1934
+LQD,ok,12.2,24,0.9167,3.34,4.09,"{""fast"": 80, ""slow"": 250, ""trailing_stop_pct"": 20}",3.34,0.82,5.07,10,91.7001
+HYG,ok,7.5,24,0.5,5.3,7.22,"{""fast"": 85, ""slow"": 100, ""trailing_stop_pct"": 12}",6.6,2.35,5.13,12,50.053
+TIP,ok,10.9,24,0.6667,2.6,3.49,"{""fast"": 80, ""slow"": 190, ""trailing_stop_pct"": 0}",2.56,2.1,3.66,14,66.6927
+GLD,ok,9.9,24,0.5,4.83,7.67,"{""fast"": 85, ""slow"": 100, ""trailing_stop_pct"": 12}",5.68,8.09,6.18,12,50.0483
+SLV,ok,8.5,24,0.4167,3.64,8.55,"{""fast"": 135, ""slow"": 170, ""trailing_stop_pct"": 18}",6.99,5.25,0.42,7,41.7031
+USO,ok,8.5,24,0.375,-0.99,3.44,"{""fast"": 45, ""slow"": 240, ""trailing_stop_pct"": 15}",-1.4,1.35,-16.65,1,37.4901
+DBC,ok,8.7,24,0.125,-1.42,3.51,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",-1.67,6.06,-6.55,2,12.4858
+GDX,ok,8.4,24,0.0833,-5.45,1.07,"{""fast"": 115, ""slow"": 160, ""trailing_stop_pct"": 13}",-2.63,1.27,-11.25,0,8.2789
+IBIT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+FBTC,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+ETHA,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+GBTC,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,
+VIG,ok,8.5,24,0.3333,3.4,6.81,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",7.93,8.08,5.95,8,33.3673
+SCHD,ok,3.0,24,0.0833,0.0,5.99,"{""fast"": 95, ""slow"": 100, ""trailing_stop_pct"": 12}",-0.08,5.24,13.3,2,8.3333
+MTUM,too little in-sample history (1.5 years < 2.0),,,,,,,,,,,
+QUAL,too little in-sample history (1.3 years < 2.0),,,,,,,,,,,
+USMV,ok,3.0,24,0.125,0.04,6.95,"{""fast"": 95, ""slow"": 100, ""trailing_stop_pct"": 12}",-0.01,6.8,14.82,3,12.5003
+VNQ,ok,10.1,24,0.8333,5.09,8.78,"{""fast"": 45, ""slow"": 170, ""trailing_stop_pct"": 24}",6.48,-1.97,7.38,5,83.3842
+VUG,ok,10.7,24,0.9167,4.28,7.88,"{""fast"": 80, ""slow"": 190, ""trailing_stop_pct"": 0}",5.69,11.81,8.69,21,91.7094
+VTV,ok,10.7,24,0.375,4.04,8.45,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",5.63,5.02,6.71,9,37.5404
+TQQQ,ok,4.7,24,0.0833,2.33,2.88,"{""fast"": 85, ""slow"": 100, ""trailing_stop_pct"": 12}",26.01,16.23,42.83,1,8.3566
+SQQQ,ok,4.7,24,0.0,0.0,,,0.0,-9.08,-47.94,0,0.0
+CSSPX.SW,ok,4.4,24,0.0833,10.45,8.63,"{""fast"": 95, ""slow"": 100, ""trailing_stop_pct"": 12}",10.93,8.79,12.01,2,8.4378
+CSNDX.SW,ok,4.8,24,0.25,12.59,13.79,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",13.67,17.25,16.54,6,25.1259
+CHSPI.SW,too little in-sample history (0.5 years < 2.0),,,,,,,,,,,
+CSSMI.SW,ok,6.8,24,0.3333,4.44,6.99,"{""fast"": 45, ""slow"": 170, ""trailing_stop_pct"": 24}",7.77,3.23,11.99,8,33.3777
+VWRL.SW,ok,2.4,24,0.0833,0.0,1.48,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",0.15,5.61,7.8,2,8.3333
+EIMI.L,too little in-sample history (0.4 years < 2.0),,,,,,,,,,,
+IWDA.AS,ok,5.1,24,0.1667,9.47,12.27,"{""fast"": 105, ""slow"": 120, ""trailing_stop_pct"": 24}",10.87,5.86,12.99,4,16.7614
+CSPX.L,ok,4.1,24,0.125,11.4,10.88,"{""fast"": 95, ""slow"": 100, ""trailing_stop_pct"": 12}",11.79,9.09,16.3,3,12.614
+^GSPC,ok,21.0,24,1.0,5.0,9.08,"{""fast"": 30, ""slow"": 280, ""trailing_stop_pct"": 25}",5.14,7.55,7.37,23,100.05
+^IXIC,ok,21.0,24,0.9583,6.21,11.42,"{""fast"": 25, ""slow"": 250, ""trailing_stop_pct"": 24}",7.49,12.84,9.46,22,95.8954
+^DJI,ok,21.0,24,1.0,2.01,6.73,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",2.82,3.51,7.48,23,100.0201
+^RUT,ok,21.0,24,0.9583,3.25,5.81,"{""fast"": 75, ""slow"": 290, ""trailing_stop_pct"": 24}",4.23,1.27,7.47,18,95.8658
+^VIX,ok,21.0,24,0.0833,-4.85,2.41,"{""fast"": 35, ""slow"": 290, ""trailing_stop_pct"": 7}",-18.9,-23.21,1.23,0,8.2849
+^SSMI,ok,21.0,24,0.9583,5.9,7.69,"{""fast"": 75, ""slow"": 290, ""trailing_stop_pct"": 24}",6.61,0.91,5.94,6,95.8924
+^STOXX50E,ok,7.5,24,0.2083,-0.74,3.14,"{""fast"": 85, ""slow"": 100, ""trailing_stop_pct"": 12}",-0.13,0.25,-0.98,3,20.8259
+^GDAXI,ok,21.0,24,0.9167,7.55,9.59,"{""fast"": 25, ""slow"": 200, ""trailing_stop_pct"": 0}",8.64,4.26,8.11,14,91.7422
+^N225,ok,21.0,24,0.9167,1.69,3.05,"{""fast"": 75, ""slow"": 290, ""trailing_stop_pct"": 24}",2.82,7.05,-0.17,22,91.6836
+^FTSE,ok,21.0,24,0.9167,3.1,4.14,"{""fast"": 35, ""slow"": 290, ""trailing_stop_pct"": 7}",3.8,1.51,3.45,13,91.6977

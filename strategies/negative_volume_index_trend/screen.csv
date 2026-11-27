@@ -1,0 +1,57 @@
+symbol,status,is_years,n_samples,share_profitable_is,median_is_yearly,best_is_yearly,best_is_params,default_is_yearly,default_oos_yearly,buy_hold_is_yearly,n_eligible,rank_score,share_profitable_h1,median_h1_yearly,share_profitable_h2,median_h2_yearly
+SPY,ok,17.0,61,0.0,0.03,,,-0.24,0.0,4.74,0,0.0003,0.541,0.06,0.2623,0.0
+VOO,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+IVV,ok,9.6,61,0.0492,0.41,0.38,"{""max_candles"": 66, ""n"": 120, ""stop_atr"": 1.25, ""take_profit_atr"": 1.5}",0.27,0.38,6.81,0,4.9221,0.7705,0.2,0.6393,0.5
+VTI,ok,8.6,61,0.0,0.0,,,0.0,0.0,6.0,0,0.0,0.0,0.0,0.2131,0.0
+QQQ,ok,10.8,61,0.0,0.32,,,0.05,0.55,11.53,0,0.0032,0.6885,0.46,0.2623,0.0
+DIA,ok,12.0,61,0.0,0.58,,,0.77,0.0,6.81,0,0.0058,0.9016,1.16,0.0,0.0
+IWM,ok,9.6,61,0.1311,0.08,0.98,"{""max_candles"": 96, ""n"": 100, ""stop_atr"": 2.5, ""take_profit_atr"": 5.5}",0.29,0.0,6.17,0,13.1156,0.459,-0.18,0.4918,0.0
+RSP,ok,6.7,61,0.0,0.5,,,-0.78,-0.44,18.04,0,0.005,0.6885,1.0,0.0984,0.0
+VEA,ok,2.5,61,0.0,0.0,,,0.0,0.77,2.48,0,0.0,0.0,0.0,0.0,0.0
+VWO,ok,4.8,61,0.0,-0.58,,,-1.19,0.0,-4.03,0,-0.0058,0.4754,0.0,0.0656,-1.17
+EFA,ok,8.4,61,0.0,0.08,,,-0.81,0.0,0.27,0,0.0008,0.7213,1.23,0.0164,0.0
+EEM,ok,6.8,61,0.0,0.0,,,0.0,0.11,6.23,0,0.0,0.1311,0.0,0.0328,0.0
+VXUS,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ACWI,too little in-sample history (1.8 years < 2.0),,,,,,,,,,,,,,,
+VT,too little in-sample history (1.6 years < 2.0),,,,,,,,,,,,,,,
+XLK,ok,11.1,61,0.377,-0.29,2.87,"{""max_candles"": 96, ""n"": 100, ""stop_atr"": 2.5, ""take_profit_atr"": 5.5}",-1.11,0.0,8.22,0,37.702,0.377,-0.58,0.0984,0.0
+XLF,ok,11.1,61,0.1967,-0.18,3.11,"{""max_candles"": 96, ""n"": 100, ""stop_atr"": 2.5, ""take_profit_atr"": 5.5}",-0.33,1.01,0.17,7,19.6703,0.4262,-0.35,0.1475,0.0
+XLE,ok,11.1,61,0.0492,0.17,1.84,"{""max_candles"": 66, ""n"": 130, ""stop_atr"": 2.75, ""take_profit_atr"": 5.0}",0.0,-0.39,6.67,0,4.9197,0.541,0.66,0.3443,0.0
+XLV,ok,11.1,61,0.623,0.1,1.29,"{""max_candles"": 66, ""n"": 210, ""stop_atr"": 3.25, ""take_profit_atr"": 4.0}",0.34,1.34,10.26,23,62.2961,0.5574,0.13,0.1148,0.0
+XLY,ok,11.1,61,0.2623,-0.14,2.28,"{""max_candles"": 96, ""n"": 100, ""stop_atr"": 2.5, ""take_profit_atr"": 5.5}",-0.77,0.0,9.19,0,26.2281,0.2131,-0.54,0.3115,0.0
+XLP,ok,11.1,61,0.1639,0.0,1.36,"{""max_candles"": 42, ""n"": 100, ""stop_atr"": 4.0, ""take_profit_atr"": 3.5}",-0.19,0.94,10.26,7,16.3934,0.3279,0.0,0.2295,0.0
+XLI,ok,11.1,61,0.6393,0.22,1.84,"{""max_candles"": 96, ""n"": 100, ""stop_atr"": 2.5, ""take_profit_atr"": 5.5}",0.8,0.0,7.28,0,63.9366,0.6066,0.41,0.1148,0.0
+XLU,ok,11.1,61,0.4426,0.13,2.14,"{""max_candles"": 60, ""n"": 170, ""stop_atr"": 3.75, ""take_profit_atr"": 4.5}",-0.83,0.22,8.4,11,44.2636,0.4918,-0.17,0.5246,0.08
+XLB,ok,11.1,61,0.0,-0.35,,,-1.26,0.0,6.26,0,-0.0035,0.2951,-0.65,0.0492,0.0
+XLRE,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+XLC,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+SMH,ok,9.6,61,0.0656,-1.33,0.55,"{""max_candles"": 42, ""n"": 140, ""stop_atr"": 3.0, ""take_profit_atr"": 5.5}",-1.99,0.61,5.63,2,6.5441,0.3279,-1.45,0.1311,-1.53
+SOXX,ok,8.5,61,0.0328,-3.6,0.84,"{""max_candles"": 36, ""n"": 180, ""stop_atr"": 1.25, ""take_profit_atr"": 6.0}",-4.0,0.24,4.63,0,3.2427,0.0656,-5.7,0.1639,-1.04
+ARKK,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+TLT,ok,7.5,61,0.3443,0.31,3.18,"{""max_candles"": 66, ""n"": 130, ""stop_atr"": 2.75, ""take_profit_atr"": 5.0}",-0.15,0.03,7.02,0,34.4293,0.5246,0.28,0.623,0.54
+IEF,ok,7.5,61,0.4262,0.35,1.65,"{""max_candles"": 36, ""n"": 150, ""stop_atr"": 2.0, ""take_profit_atr"": 5.5}",0.5,-0.36,5.06,0,42.6265,0.8361,0.85,0.2623,-0.22
+SHY,ok,7.5,61,0.0328,-0.27,0.17,"{""max_candles"": 60, ""n"": 200, ""stop_atr"": 3.75, ""take_profit_atr"": 5.5}",-0.17,-0.39,1.27,0,3.276,0.2623,-0.03,0.0,-0.46
+AGG,ok,6.3,61,0.0328,-0.11,0.1,"{""max_candles"": 66, ""n"": 120, ""stop_atr"": 1.25, ""take_profit_atr"": 1.5}",-0.01,-0.06,3.57,0,3.2776,0.2459,0.0,0.1967,-0.34
+BND,ok,2.8,61,0.0,-0.48,,,-0.63,-0.74,1.63,0,-0.0048,0.0,0.0,0.0,-0.95
+LQD,ok,7.5,61,0.2131,0.04,1.58,"{""max_candles"": 96, ""n"": 100, ""stop_atr"": 2.5, ""take_profit_atr"": 5.5}",-0.47,-0.21,6.22,0,21.3119,0.6066,0.1,0.1148,0.0
+HYG,ok,2.8,61,0.0,0.0,,,0.0,0.2,0.05,0,0.0,0.0,0.0,0.0164,0.0
+TIP,ok,6.1,61,0.0,-0.15,,,-0.13,-0.26,2.69,0,-0.0015,0.0984,0.0,0.1148,-0.31
+GLD,ok,5.2,61,0.0,-0.61,,,-0.96,0.75,-5.01,0,-0.0061,0.0,0.0,0.0164,-0.81
+SLV,ok,3.7,61,0.0,-0.27,,,0.0,-2.14,-20.32,0,-0.0027,0.0,-0.33,0.0,0.0
+USO,ok,3.8,61,0.0,0.0,,,0.0,-1.69,-29.09,0,0.0,0.0,0.0,0.0,0.0
+DBC,ok,4.0,61,0.0164,0.15,0.38,"{""max_candles"": 66, ""n"": 120, ""stop_atr"": 1.25, ""take_profit_atr"": 1.5}",0.98,0.42,-16.65,1,1.6408,0.5246,0.31,0.0,0.0
+GDX,ok,3.7,61,0.0,-1.29,,,0.0,1.96,-26.49,0,-0.0129,0.0,0.0,0.082,-2.57
+IBIT,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+FBTC,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+ETHA,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+GBTC,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+VIG,ok,3.7,61,0.0,0.0,,,0.0,0.0,10.93,0,0.0,0.1148,0.0,0.0,0.0
+SCHD,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+MTUM,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+QUAL,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+USMV,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+VNQ,ok,5.3,61,0.0,0.0,,,0.0,-0.36,12.41,0,0.0,0.0,0.0,0.0,0.0
+VUG,ok,6.0,61,0.0,0.0,,,0.0,0.0,13.44,0,0.0,0.2623,0.0,0.082,0.0
+VTV,ok,6.0,61,0.2295,0.76,2.39,"{""max_candles"": 42, ""n"": 130, ""stop_atr"": 2.0, ""take_profit_atr"": 5.5}",0.76,0.0,11.66,2,22.9584,0.9836,1.52,0.1967,0.0
+TQQQ,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
+SQQQ,too little in-sample history (listed after the out-of-sample start),,,,,,,,,,,,,,,
