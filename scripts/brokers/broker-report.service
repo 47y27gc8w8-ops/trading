@@ -1,0 +1,11 @@
+# Daily e-mail report of all paper bots (src/brokers/report.py, standard library + msmtp).
+[Unit]
+Description=Paper brokers daily e-mail report
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=luca
+Environment=HOME=/home/luca
+ExecStart=/usr/bin/python3 /home/luca/trading/src/brokers/report.py

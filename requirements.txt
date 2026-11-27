@@ -8,3 +8,5 @@ tenacity
 fastapi
 uvicorn
 duckdb
+ccxt
+psutil

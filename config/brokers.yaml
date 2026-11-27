@@ -1,0 +1,234 @@
+# Paper-trading bots (src/brokers). One bot = one strategy variant from strategies/leaderboard.json,
+# snapshotted 2026-11-27 so a leaderboard rebuild does not silently change a running bot.
+# Selection: best variant per strategy with conservative (min of in-/out-of-sample) return >= 4.0%/yr
+# (beats the ~4.15% T-bill yield), worst drawdown >= -60.0%, >= 10 backtest trades, not low-confidence.
+# PAPER ONLY: no broker or exchange account exists; market data comes from public endpoints.
+start_balance_chf: 10000
+fee_pct: 0.10        # charged on every fill's notional
+slippage_pct: 0.05   # adverse price move on every fill
+bots:
+  - id: eth-dip-inj
+    strategy: eth_dip_ws
+    profile: max-income
+    variant_file: strategies/eth_dip_ws/symbols/INJUSDT/eth_dip_ws__INJUSDT__max-income__v002.md
+    symbols: ["INJUSDT"]
+    params: {"entry": 30, "exit": 40, "rsi_n": 24, "stop_loss_pct": 6}
+    backtest: {conservative_yearly_pct: 36.76, worst_max_dd_pct: -22.86}
+  - id: breakout-basket
+    strategy: breakout_bl
+    profile: balanced
+    variant_file: strategies/breakout_bl/symbols/broad/breakout_bl__broad__balanced__v001.md
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "ZECUSDT", "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT", "UNIUSDT", "HBARUSDT", "QNTUSDT", "SHIBUSDT", "AAVEUSDT", "JSTUSDT", "DOTUSDT", "ICPUSDT", "ETCUSDT", "ALGOUSDT", "ATOMUSDT", "INJUSDT", "CAKEUSDT", "STXUSDT", "FILUSDT", "DASHUSDT", "VETUSDT", "RAYUSDT"]
+    params: {"entry_n": 27, "exit_n": 8}
+    backtest: {conservative_yearly_pct: 31.01, worst_max_dd_pct: -34.3}
+  - id: breakout-ws-basket
+    strategy: breakout_ws
+    profile: balanced
+    variant_file: strategies/breakout_ws/symbols/broad/breakout_ws__broad__balanced__v001.md
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "ZECUSDT", "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT", "UNIUSDT", "HBARUSDT", "QNTUSDT", "SHIBUSDT", "AAVEUSDT", "JSTUSDT", "DOTUSDT", "ICPUSDT", "ETCUSDT", "ALGOUSDT", "ATOMUSDT", "INJUSDT", "CAKEUSDT", "STXUSDT", "FILUSDT", "DASHUSDT", "VETUSDT", "RAYUSDT"]
+    params: {"entry_n": 57, "exit_n": 5}
+    backtest: {conservative_yearly_pct: 20.24, worst_max_dd_pct: -26.22}
+  - id: weekly-high-basket
+    strategy: weekly_high_with_daily_trigger
+    profile: max-income
+    variant_file: strategies/weekly_high_with_daily_trigger/symbols/broad/weekly_high_with_daily_trigger__broad__max-income__v002.md
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "ZECUSDT", "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT", "UNIUSDT", "HBARUSDT", "AAVEUSDT", "JSTUSDT", "DOTUSDT", "ETCUSDT", "ALGOUSDT", "ATOMUSDT", "INJUSDT", "CAKEUSDT", "STXUSDT", "FILUSDT", "DASHUSDT", "VETUSDT"]
+    params: {"max_candles": 42, "stop_atr": 5.75, "take_profit_atr": 6.5, "weeks": 4}
+    backtest: {conservative_yearly_pct: 18.11, worst_max_dd_pct: -33.89}
+  - id: donchian-basket
+    strategy: donchian_channel_breakout
+    profile: max-income
+    variant_file: strategies/donchian_channel_breakout/symbols/broad/donchian_channel_breakout__broad__max-income__v002.md
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "ZECUSDT", "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT", "UNIUSDT", "HBARUSDT", "AAVEUSDT", "JSTUSDT", "DOTUSDT", "ETCUSDT", "ALGOUSDT", "ATOMUSDT", "INJUSDT", "CAKEUSDT", "STXUSDT", "FILUSDT", "DASHUSDT", "VETUSDT"]
+    params: {"exit_n": 20, "max_candles": 37, "n": 22, "stop_atr": 3.25, "take_profit_atr": 7.0}
+    backtest: {conservative_yearly_pct: 14.85, worst_max_dd_pct: -38.61}
+  - id: vwma-eth
+    strategy: volume_weighted_ma_cross
+    profile: max-income
+    variant_file: strategies/volume_weighted_ma_cross/volume_weighted_ma_cross__max-income__v002.md
+    symbols: ["ETHUSDT"]
+    params: {"fast": 11, "max_candles": 96, "slow": 70, "stop_atr": 1.25, "take_profit_atr": 10.5}
+    backtest: {conservative_yearly_pct: 10.29, worst_max_dd_pct: -33.35}
+  - id: range-box-aapl
+    strategy: range_box_breakout
+    profile: balanced
+    variant_file: strategies/range_box_breakout/range_box_breakout__balanced__v002.md
+    symbols: ["AAPL"]
+    params: {"max_candles": 48, "n": 19, "stop_atr": 4.0, "take_profit_atr": 4.5, "width": 5.25}
+    backtest: {conservative_yearly_pct: 9.72, worst_max_dd_pct: -37.33}
+  - id: lowcorr-rotation
+    strategy: low_correlation_momentum_selection
+    profile: safe-starter
+    variant_file: strategies/low_correlation_momentum_selection/low_correlation_momentum_selection__safe-starter__v002.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"corr": 0.9, "k": 3, "max_candles": 231, "stop_loss_pct": 5}
+    backtest: {conservative_yearly_pct: 8.93, worst_max_dd_pct: -26.11}
+  - id: downside-risk-rotation
+    strategy: downside_risk_weighted_momentum
+    profile: max-income
+    variant_file: strategies/downside_risk_weighted_momentum/downside_risk_weighted_momentum__max-income__v001.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"k": 3, "max_candles": 273, "n": 126, "stop_loss_pct": 25}
+    backtest: {conservative_yearly_pct: 8.87, worst_max_dd_pct: -25.72}
+  - id: rank-rotation
+    strategy: multi_horizon_rank_rotation
+    profile: balanced
+    variant_file: strategies/multi_horizon_rank_rotation/multi_horizon_rank_rotation__balanced__v001.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"k": 5, "max_candles": 441, "stop_loss_pct": 14}
+    backtest: {conservative_yearly_pct: 8.85, worst_max_dd_pct: -23.53}
+  - id: mfi-eth
+    strategy: mfi_momentum_confirmation
+    profile: balanced
+    variant_file: strategies/mfi_momentum_confirmation/mfi_momentum_confirmation__balanced__v001.md
+    symbols: ["ETHUSDT"]
+    params: {"level": 87.5, "max_candles": 78, "stop_atr": 2.25, "take_profit_atr": 3.0}
+    backtest: {conservative_yearly_pct: 8.77, worst_max_dd_pct: -12.8}
+  - id: abs-mom-spy
+    strategy: absolute_momentum_monthly
+    profile: balanced
+    variant_file: strategies/absolute_momentum_monthly/absolute_momentum_monthly__balanced__v001.md
+    symbols: ["SPY"]
+    params: {"hurdle": 0.25, "max_candles": 10, "n": 7, "stop_atr": 3.5, "take_profit_atr": 4.0}
+    backtest: {conservative_yearly_pct: 8.44, worst_max_dd_pct: -21.15}
+  - id: vol-adj-rotation
+    strategy: vol_adjusted_momentum_rotation
+    profile: max-income
+    variant_file: strategies/vol_adjusted_momentum_rotation/vol_adjusted_momentum_rotation__max-income__v001.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"k": 3, "max_candles": 378, "n": 63, "stop_loss_pct": 22}
+    backtest: {conservative_yearly_pct: 8.27, worst_max_dd_pct: -25.81}
+  - id: dd-switch
+    strategy: drawdown_defensive_switch
+    profile: safe-starter
+    variant_file: strategies/drawdown_defensive_switch/drawdown_defensive_switch__safe-starter__v001.md
+    symbols: ["IEF", "SPY"]
+    params: {"dd": 5, "max_candles": 189, "n": 210, "stop_loss_pct": 22}
+    backtest: {conservative_yearly_pct: 8.22, worst_max_dd_pct: -13.31}
+  - id: vol-target-spy
+    strategy: single_etf_volatility_target
+    profile: max-income
+    variant_file: strategies/single_etf_volatility_target/single_etf_volatility_target__max-income__v002.md
+    symbols: ["SPY"]
+    params: {"max_candles": 441, "stop_loss_pct": 7, "target": 0.28}
+    backtest: {conservative_yearly_pct: 8.11, worst_max_dd_pct: -25.41}
+  - id: trend-global
+    strategy: trend_equal_weight_global
+    profile: max-income
+    variant_file: strategies/trend_equal_weight_global/trend_equal_weight_global__max-income__v001.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"max_candles": 231, "n": 150, "stop_loss_pct": 24}
+    backtest: {conservative_yearly_pct: 7.81, worst_max_dd_pct: -22.07}
+  - id: inv-vol-trend
+    strategy: inverse_volatility_trend_basket
+    profile: balanced
+    variant_file: strategies/inverse_volatility_trend_basket/inverse_volatility_trend_basket__balanced__v002.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"max_candles": 441, "n": 180, "stop_loss_pct": 19}
+    backtest: {conservative_yearly_pct: 7.69, worst_max_dd_pct: -21.73}
+  - id: dip-btc
+    strategy: drawdown_from_recent_high
+    profile: max-income
+    variant_file: strategies/drawdown_from_recent_high/drawdown_from_recent_high__max-income__v002.md
+    symbols: ["BTCUSDT"]
+    params: {"dip": 12, "max_candles": 2, "n": 17, "stop_atr": 3.5, "take_profit_atr": 4.5}
+    backtest: {conservative_yearly_pct: 7.6, worst_max_dd_pct: -21.3}
+  - id: dual-momentum
+    strategy: dual_momentum_allocation
+    profile: balanced
+    variant_file: strategies/dual_momentum_allocation/dual_momentum_allocation__balanced__v001.md
+    symbols: ["EFA", "IEF", "SPY"]
+    params: {"max_candles": 420, "n": 315, "stop_loss_pct": 21}
+    backtest: {conservative_yearly_pct: 7.45, worst_max_dd_pct: -24.65}
+  - id: sector-roc
+    strategy: sector_roc_rotation
+    profile: balanced
+    variant_file: strategies/sector_roc_rotation/sector_roc_rotation__balanced__v002.md
+    symbols: ["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]
+    params: {"k": 8, "max_candles": 210, "n": 252, "stop_loss_pct": 9}
+    backtest: {conservative_yearly_pct: 7.06, worst_max_dd_pct: -20.32}
+  - id: roc-vote-basket
+    strategy: multi_horizon_roc_vote
+    profile: max-income
+    variant_file: strategies/multi_horizon_roc_vote/symbols/broad/multi_horizon_roc_vote__broad__max-income__v002.md
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "ZECUSDT", "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT", "UNIUSDT", "HBARUSDT", "AAVEUSDT", "JSTUSDT", "DOTUSDT", "ETCUSDT", "ALGOUSDT", "ATOMUSDT", "INJUSDT", "CAKEUSDT", "STXUSDT", "FILUSDT", "DASHUSDT", "VETUSDT"]
+    params: {"max_candles": 120, "stop_atr": 3.0, "take_profit_atr": 10.5, "votes": 2}
+    backtest: {conservative_yearly_pct: 6.92, worst_max_dd_pct: -52.8}
+  - id: golden-soxx
+    strategy: golden_cross
+    profile: max-income
+    variant_file: strategies/golden_cross/symbols/SOXX/golden_cross__SOXX__max-income__v001.md
+    symbols: ["SOXX"]
+    params: {"fast": 30, "max_candles": 112, "slow": 200, "stop_atr": 2.0, "take_profit_atr": 10.0}
+    backtest: {conservative_yearly_pct: 6.88, worst_max_dd_pct: -10.86}
+  - id: trix-basket
+    strategy: trix_zero_trend
+    profile: max-income
+    variant_file: strategies/trix_zero_trend/symbols/broad/trix_zero_trend__broad__max-income__v001.md
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "XRPUSDT", "SOLUSDT", "TRXUSDT", "ZECUSDT", "DOGEUSDT", "LINKUSDT", "ADAUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT", "LTCUSDT", "AVAXUSDT", "UNIUSDT", "HBARUSDT", "AAVEUSDT", "JSTUSDT", "DOTUSDT", "ETCUSDT", "ALGOUSDT", "ATOMUSDT", "INJUSDT", "CAKEUSDT", "STXUSDT", "FILUSDT", "DASHUSDT", "VETUSDT"]
+    params: {"max_candles": 132, "n": 13, "stop_atr": 2.75, "take_profit_atr": 5.0}
+    backtest: {conservative_yearly_pct: 6.86, worst_max_dd_pct: -19.48}
+  - id: failed-breakdown-etfs
+    strategy: failed_downside_breakout
+    profile: max-income
+    variant_file: strategies/failed_downside_breakout/symbols/broad/failed_downside_breakout__broad__max-income__v002.md
+    symbols: ["SPY", "VOO", "IVV", "VTI", "QQQ", "DIA", "IWM", "RSP", "VEA", "VWO", "EFA", "EEM", "VXUS", "ACWI", "VT", "XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "SMH", "SOXX", "TLT", "IEF", "SHY", "AGG", "BND", "LQD", "HYG", "TIP", "GLD", "SLV", "USO", "DBC", "GDX", "VIG", "SCHD", "MTUM", "QUAL", "USMV", "VNQ", "VUG", "VTV", "TQQQ", "SQQQ"]
+    dropped_symbols: ["CSSPX.SW", "CSNDX.SW", "CSSMI.SW", "VWRL.SW", "IWDA.AS", "CSPX.L", "^GSPC", "^IXIC", "^DJI", "^RUT", "^VIX", "^SSMI", "^STOXX50E", "^GDAXI", "^N225", "^FTSE"]  # indices aren't tradable; non-USD listings are blocked like in the paper portfolio
+    params: {"max_candles": 40, "n": 12, "stop_atr": 4.75, "take_profit_atr": 1.5}
+    backtest: {conservative_yearly_pct: 6.68, worst_max_dd_pct: -18.9}
+  - id: sector-breadth
+    strategy: breadth_scaled_sector_allocation
+    profile: max-income
+    variant_file: strategies/breadth_scaled_sector_allocation/breadth_scaled_sector_allocation__max-income__v001.md
+    symbols: ["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]
+    params: {"max_candles": 189, "n": 240, "stop_loss_pct": 25}
+    backtest: {conservative_yearly_pct: 6.66, worst_max_dd_pct: -16.37}
+  - id: leader-rotation
+    strategy: high_proximity_leader_rotation
+    profile: balanced
+    variant_file: strategies/high_proximity_leader_rotation/high_proximity_leader_rotation__balanced__v002.md
+    symbols: ["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]
+    params: {"k": 5, "max_candles": 126, "n": 336, "stop_loss_pct": 28}
+    backtest: {conservative_yearly_pct: 5.55, worst_max_dd_pct: -38.24}
+  - id: connors-iwm
+    strategy: connors_composite_oversold
+    profile: max-income
+    variant_file: strategies/connors_composite_oversold/connors_composite_oversold__max-income__v002.md
+    symbols: ["IWM"]
+    params: {"buy": 15, "exit": 80.0, "max_bars": 22, "stop_atr": 3.5, "take_profit_atr": 4.0}
+    backtest: {conservative_yearly_pct: 5.38, worst_max_dd_pct: -16.95}
+  - id: winner-rotation
+    strategy: consistent_winner_rotation
+    profile: max-income
+    variant_file: strategies/consistent_winner_rotation/consistent_winner_rotation__max-income__v002.md
+    symbols: ["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]
+    params: {"k": 5, "max_candles": 315, "n": 19, "stop_loss_pct": 11}
+    backtest: {conservative_yearly_pct: 5.33, worst_max_dd_pct: -35.57}
+  - id: stock-bond-switch
+    strategy: stock_bond_paired_switch
+    profile: max-income
+    variant_file: strategies/stock_bond_paired_switch/stock_bond_paired_switch__max-income__v001.md
+    symbols: ["SPY", "TLT"]
+    params: {"max_candles": 252, "n": 84, "stop_loss_pct": 20}
+    backtest: {conservative_yearly_pct: 5.25, worst_max_dd_pct: -23.31}
+  - id: loser-rebound
+    strategy: monthly_loser_rebound_basket
+    profile: max-income
+    variant_file: strategies/monthly_loser_rebound_basket/monthly_loser_rebound_basket__max-income__v001.md
+    symbols: ["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]
+    params: {"k": 5, "max_candles": 147, "stop_loss_pct": 28}
+    backtest: {conservative_yearly_pct: 5.22, worst_max_dd_pct: -34.34}
+  - id: mfi-washout-msft
+    strategy: mfi_washout
+    profile: max-income
+    variant_file: strategies/mfi_washout/mfi_washout__max-income__v002.md
+    symbols: ["MSFT"]
+    params: {"level": 34, "max_candles": 36, "n": 15, "stop_atr": 3.0, "take_profit_atr": 4.0}
+    backtest: {conservative_yearly_pct: 5.11, worst_max_dd_pct: -19.8}
+  - id: erc-trend
+    strategy: equal_risk_contribution_trend
+    profile: balanced
+    variant_file: strategies/equal_risk_contribution_trend/equal_risk_contribution_trend__balanced__v002.md
+    symbols: ["DBC", "EEM", "EFA", "GLD", "IEF", "SPY", "TLT", "VNQ"]
+    params: {"max_candles": 189, "n": 63, "stop_loss_pct": 13}
+    backtest: {conservative_yearly_pct: 4.8, worst_max_dd_pct: -25.99}

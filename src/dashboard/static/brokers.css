@@ -1,0 +1,85 @@
+/* Paper brokers page: on top of tokens.css + leaderboard.css (panels, KPIs, tables).
+   Same ARCO language: Anton figures with small accent units, green = gain, red = loss. */
+
+.kpis { grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr)); }
+.kpi .v.up { color: var(--up); }
+.kpi .v.down { color: var(--down); }
+.topbar .live { margin-left: 0; }
+
+/* ============================================================ server meters === */
+.meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, .8fr); gap: var(--gap); padding: 0 var(--card-pad) 22px; }
+.meter { background: var(--night-3); border-radius: var(--radius-in); padding: 16px 18px 14px; min-width: 0; }
+.meter .k { color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 8px; }
+.meter .k span:last-child { letter-spacing: 0; text-transform: none; font-weight: 600; color: var(--muted); font-size: 12px; }
+.meter .v { font: 400 48px/1 var(--display); margin: 10px 0 10px; font-variant-numeric: tabular-nums; }
+.meter .v small { font: 700 16px var(--font); color: var(--accent); margin-left: 3px; }
+.meter .bar { height: 8px; border-radius: 4px; background: var(--night-4); overflow: hidden; }
+.meter .bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .6s var(--ease); }
+.meter .bar i.hot { background: var(--warn); }
+.meter .bar i.crit { background: var(--down); }
+.meter .s { color: var(--muted); font-size: 13px; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meter svg.spark { display: block; width: 100%; height: 34px; margin-top: 8px; overflow: visible; }
+.meter svg.spark path { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linejoin: round; }
+.meter svg.spark path.area { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: none; }
+.meter.facts dl { margin: 8px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
+.meter.facts dt { color: var(--faint); }
+.meter.facts dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ================================================================ bot table === */
+#bots tbody tr { cursor: default; }
+#bots td { vertical-align: middle; }
+.st { display: inline-flex; align-items: center; gap: 7px; height: 24px; padding: 0 11px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: capitalize; background: var(--night-3); color: var(--muted); }
+.st i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.st.running { background: var(--up-bg); color: var(--up); }
+.st.running i { animation: pulse 1.8s ease-in-out infinite; }
+.st.idle { background: var(--night-3); color: var(--fg); }
+.st.error, .st.down { background: var(--down-bg); color: var(--down); }
+.st.starting { background: var(--warn-bg); color: var(--warn); }
+.st-msg { display: block; color: var(--faint); font-size: 12px; margin-top: 4px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+td .up { color: var(--up); }
+td .down { color: var(--down); }
+td small.p { display: block; font-size: 12px; color: var(--faint); font-weight: 500; }
+.pos { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; white-space: normal; }
+.pos .chip { height: 24px; padding: 0 9px; font-size: 12px; }
+.lt { color: var(--muted); font-size: 13px; white-space: normal; min-width: 150px; max-width: 220px; }
+.lt b { color: var(--fg); }
+.lt .buy { color: var(--up); font-weight: 700; }
+.lt .sell { color: var(--down); font-weight: 700; }
+
+/* ============================================================ equity curves === */
+.curves { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--gap); padding: 0 var(--card-pad) 22px; }
+.curve { background: var(--night-3); border-radius: var(--radius-in); padding: 14px 16px 10px; min-width: 0; }
+.curve .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.curve .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.curve .eq { font: 400 26px/1 var(--display); white-space: nowrap; }
+.curve .eq small { font: 700 12px var(--font); color: var(--accent); margin-left: 3px; }
+.curve .sub2 { display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; margin-top: 4px; gap: 8px; }
+.curve svg { display: block; width: 100%; height: 120px; margin-top: 10px; overflow: visible; }
+.curve svg .base { stroke: var(--line-2); stroke-dasharray: 3 4; stroke-width: 1; }
+.curve svg .ln { fill: none; stroke-width: 1.8; stroke-linejoin: round; }
+.curve svg .ln.up { stroke: var(--up); }
+.curve svg .ln.down { stroke: var(--down); }
+.curve svg .ar.up { fill: color-mix(in srgb, var(--up) 12%, transparent); }
+.curve svg .ar.down { fill: color-mix(in srgb, var(--down) 12%, transparent); }
+.curve svg text { fill: var(--faint); font-size: 10px; font-family: var(--font); font-variant-numeric: tabular-nums; }
+.curve svg .hl { stroke: var(--muted); stroke-width: 1; }
+.curve svg .hd-dot { fill: var(--fg); }
+.curve .read { color: var(--muted); font-size: 12px; min-height: 16px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.curve .empty { height: 120px; display: grid; place-items: center; color: var(--faint); font-size: 13px; margin-top: 10px; }
+
+#trades tbody tr { cursor: default; }
+#trades .why { color: var(--faint); font-size: 13px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 1280px) {
+  .meters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1099px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 719px) {
+  .meters { grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px 16px; }
+  .meter { padding: 12px; }
+  .meter .v { font-size: 34px; }
+  .curves { grid-template-columns: 1fr; padding: 0 12px 16px; }
+  .st-msg { display: none; }
+}
