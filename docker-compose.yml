@@ -52,6 +52,12 @@ services:
   dashboard:
     <<: *base
     command: uvicorn src.dashboard.app:app --host 0.0.0.0 --port 3000 --workers 1 --no-access-log
+    volumes:   # the base mounts plus strategies/, read-only, for /leaderboard
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+      - ./src:/app/src:ro
+      - ./strategies:/app/strategies:ro
     ports:
       - "0.0.0.0:3000:3000"   # IPv4 only: LAN + Tailscale; not on the public IPv6 address (no login!)
     restart: unless-stopped

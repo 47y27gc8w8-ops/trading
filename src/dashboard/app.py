@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from src.common.storage import CRYPTO_1M, DATA, ETF_1D, ETF_1M, LOGS, QUOTES, etf_daily_path, load_config, safe_ticker
+from src.common.storage import CRYPTO_1M, DATA, ROOT, ETF_1D, ETF_1M, LOGS, QUOTES, etf_daily_path, load_config, safe_ticker
 
 STATIC = Path(__file__).parent / "static"
 PORTFOLIO = DATA / "portfolio.json"
@@ -566,6 +566,45 @@ def api_settings(s: Settings):
     return {"ok": True}
 
 
+# ------------------------------------------------------------- leaderboard ---
+# strategies/leaderboard.json is written by the optimizer's leaderboard.py; the dashboard only reads it.
+
+LEADERBOARD = ROOT / "strategies" / "leaderboard.json"
+_lb_cache: dict = {"mtime": None, "data": None}
+
+
+@app.get("/api/leaderboard")
+def api_leaderboard():
+    try:
+        mtime = LEADERBOARD.stat().st_mtime
+    except FileNotFoundError:
+        raise HTTPException(404, "strategies/leaderboard.json not found (run leaderboard.py)")
+    if _lb_cache["mtime"] != mtime:
+        raw = json.loads(LEADERBOARD.read_text())
+        kinds = universe()
+        entries = []
+        for i, e in enumerate(raw.get("entries", [])):
+            syms = [str(s) for s in e.get("symbols") or []]
+            classes = sorted({kinds.get(s) or ("crypto" if s.endswith("USDT") else "other") for s in syms})
+            longs = (e.get("signal_now") or {}).get("long") or []
+            entries.append({
+                "id": i, "strategy": e.get("strategy"), "tag": e.get("tag"), "profile": e.get("profile"),
+                "kind": e.get("kind"), "symbols": syms, "classes": classes,
+                "low_confidence": bool(e.get("confidence_note")), "stale": bool(e.get("stale")),
+                "params": e.get("params") or {}, "variant_file": e.get("variant_file"),
+                **{k: e.get(k) for k in (
+                    "is_yearly_pct", "oos_yearly_pct", "conservative_yearly_pct", "worst_max_dd_pct",
+                    "position_pct_for_10pct_dd", "is_win_rate", "oos_win_rate", "is_trades", "oos_trades",
+                    "oos_efficiency", "largest_loss_pct", "robust_frac", "oos_period")},
+                "signal": {"long": [{"symbol": x.get("symbol"), "since": (x.get("since") or "")[:10]} for x in longs],
+                           "data_until": ((e.get("signal_now") or {}).get("data_until") or "")[:10]},
+            })
+        _lb_cache.update(mtime=mtime, data={
+            "generated": raw.get("generated"), "ranking": raw.get("ranking"), "note": raw.get("note"),
+            "best": raw.get("best", {}), "entries": entries})
+    return _lb_cache["data"]
+
+
 # ------------------------------------------------------------------ static ---
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -579,3 +618,8 @@ def _warm() -> None:  # build the slow health scan in the background right after
 @app.get("/")
 def index():
     return FileResponse(STATIC / "index.html")
+
+
+@app.get("/leaderboard")
+def leaderboard_page():
+    return FileResponse(STATIC / "leaderboard.html")
