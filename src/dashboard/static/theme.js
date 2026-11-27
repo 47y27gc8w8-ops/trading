@@ -6,20 +6,20 @@
   "use strict";
   var KEY = "accent";
   var COLORS = [
-    ["volt", "Volt", "#D4F23A"],
+    ["amber", "Amber", "#F5A524"],
     ["sky", "Sky", "#3FA9FF"],
     ["lilac", "Lilac", "#A99AF0"],
     ["clay", "Clay", "#E08C84"],
   ];
   var hex = function (id) { for (var i = 0; i < COLORS.length; i++) if (COLORS[i][0] === id) return COLORS[i][2]; return COLORS[0][2]; };
   var valid = function (id) { return COLORS.some(function (c) { return c[0] === id; }); };
-  var read = function () { try { var v = localStorage.getItem(KEY); return valid(v) ? v : "volt"; } catch (e) { return "volt"; } };
+  var read = function () { try { var v = localStorage.getItem(KEY); return valid(v) ? v : "amber"; } catch (e) { return "amber"; } };
 
   function apply(id, announce) {
     var root = document.documentElement;
-    if (id === "volt") root.removeAttribute("data-color"); else root.setAttribute("data-color", id);
+    if (id === "amber") root.removeAttribute("data-color"); else root.setAttribute("data-color", id);
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", "#0E1308");
+    if (meta) meta.setAttribute("content", "#000000");
     document.querySelectorAll("[data-swatches] button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.c === id)); });
     if (announce) window.dispatchEvent(new CustomEvent("accentchange", { detail: { id: id, hex: hex(id) } }));
   }

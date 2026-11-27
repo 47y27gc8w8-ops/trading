@@ -1,10 +1,10 @@
 /* Markets · Homelab — design tokens and base components, shared by the SPA (index.html) and /leaderboard.
    Design language taken from ARCO: Anton display type in capitals ending in a full stop, Inter for text,
-   a dark olive night ground, one switchable accent (Volt, Sky, Lilac, Clay) and up/down colours kept
+   the original true-black ground and greys, one switchable accent (Amber by default, Sky, Lilac, Clay) and up/down colours kept
    apart from the accent. The accent is a registered custom property, so a switch fades in 0.8 s.
 
-   Contrast on the card ground #182010 (checked): text 14.7, muted 8.9, faint 5.9, up 9.5, down 5.4;
-   on the deepest well #222C18 down is still 4.66. Ink #10150A on every accent: 7.3 or more. */
+   Contrast on the card ground #111111 (checked): muted 9.1, faint 6.2, up 8.1, down 6.4, amber 9.3;
+   on the deepest well #2A2A2A down is still 4.87. Ink #0A0A0A on amber: 9.7. */
 
 @font-face { font-family: "Anton"; font-weight: 400; font-display: swap; src: url(/static/vendor/fonts/anton-latin-400-normal.woff2) format("woff2"); }
 @font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url(/static/vendor/fonts/inter-latin-400-normal.woff2) format("woff2"); }
@@ -12,34 +12,34 @@
 @font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url(/static/vendor/fonts/inter-latin-600-normal.woff2) format("woff2"); }
 @font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url(/static/vendor/fonts/inter-latin-700-normal.woff2) format("woff2"); }
 
-@property --accent { syntax: "<color>"; inherits: true; initial-value: #D4F23A; }
+@property --accent { syntax: "<color>"; inherits: true; initial-value: #F5A524; }
 
 :root {
   color-scheme: dark;
   /* night */
-  --night: #0E1308;
-  --night-2: #182010;      /* cards */
-  --night-3: #222C18;      /* wells, hover, segmented tracks */
-  --night-4: #2E3A21;      /* selected segment, pressed */
-  --fg: #ECF4CF;
-  --muted: #B9C19F;
-  --faint: #959C80;
-  --line: rgba(236, 244, 207, .08);
-  --line-2: rgba(236, 244, 207, .14);
+  --night: #000000;
+  --night-2: #111111;      /* cards */
+  --night-3: #1C1C1C;      /* wells, hover, segmented tracks */
+  --night-4: #2A2A2A;      /* selected segment, pressed */
+  --fg: #FFFFFF;
+  --muted: #B4B4B4;
+  --faint: #949494;
+  --line: rgba(255, 255, 255, .08);
+  --line-2: rgba(255, 255, 255, .14);
   /* light set, used for the order card and the toast */
-  --paper: #F3F8DC;
-  --panel: #F2FBB0;
-  --ink: #10150A;
-  --ink-2: #4A5236;
+  --paper: #F2F2F2;
+  --panel: #FDE7BF;
+  --ink: #0A0A0A;
+  --ink-2: #474747;
 
-  --accent: #D4F23A;       /* Volt */
-  --on-accent: #10150A;
-  --up: #3DDBB0;           /* cool mint */
-  --down: #FF5468;         /* clear red */
-  --warn: #F2B33D;
-  --up-bg: rgba(61, 219, 176, .13);
-  --down-bg: rgba(255, 84, 104, .15);
-  --warn-bg: rgba(242, 179, 61, .14);
+  --accent: #F5A524;       /* Amber, the original data hue */
+  --on-accent: #0A0A0A;
+  --up: #3FC07A;           /* original green */
+  --down: #F06B82;         /* original red, the lighter leaderboard step */
+  --warn: #E5A93B;
+  --up-bg: rgba(63, 192, 122, .14);
+  --down-bg: rgba(240, 107, 130, .15);
+  --warn-bg: rgba(229, 169, 59, .14);
 
   /* old names still read by app.js / charts */
   --text: var(--fg);
@@ -49,8 +49,8 @@
   --positive: var(--up);
   --negative: var(--down);
   --warning: var(--warn);
-  --grid: rgba(236, 244, 207, .06);
-  --control: rgba(236, 244, 207, .28);
+  --grid: #262626;
+  --control: #444444;
   --border: var(--line); --rule: var(--line);
   --pill-pos-bg: var(--up-bg); --pill-pos: var(--up);
   --pill-neg-bg: var(--down-bg); --pill-neg: var(--down);
@@ -85,7 +85,7 @@ body {
   font: 400 var(--fs-body)/1.5 var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   font-feature-settings: "cv11", "ss01";
   /* the fine raster ARCO lays under everything: 48 px squares, barely there */
-  background: var(--night) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M48 0H0V48' fill='none' stroke='%23ECF4CF' stroke-opacity='.035'/%3E%3C/svg%3E") repeat;
+  background: var(--night) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M48 0H0V48' fill='none' stroke='%23FFFFFF' stroke-opacity='.035'/%3E%3C/svg%3E") repeat;
 }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; }
@@ -119,7 +119,7 @@ h1.display { font-size: var(--fs-hero); }
 .ghost-word {
   position: absolute; z-index: -1; right: -.04em; top: -.18em; pointer-events: none; user-select: none;
   font: 400 clamp(120px, 22vw, 340px)/.8 var(--display); text-transform: uppercase; white-space: nowrap;
-  color: transparent; -webkit-text-stroke: 1.5px rgba(236, 244, 207, .07);
+  color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, .07);
 }
 
 /* ============================================================= buttons === */

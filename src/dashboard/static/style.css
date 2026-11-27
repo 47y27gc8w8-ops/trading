@@ -194,20 +194,20 @@ svg.spark path { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-lin
 .order-card .panel-head .sub { color: var(--ink-2); }
 .order-card .field { color: var(--ink-2); font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
 .order-card .input { background: rgba(255, 255, 255, .62); color: var(--ink); border: 2px solid transparent; }
-.order-card .input::placeholder { color: #6E7656; }
+.order-card .input::placeholder { color: #6B6B6B; }
 .order-card .input:hover { background: rgba(255, 255, 255, .8); }
 .order-card .input:focus { border-color: var(--ink); background: #fff; }
-.order-card .tabs { background: rgba(16, 21, 10, .09); }
+.order-card .tabs { background: rgba(0, 0, 0, .09); }
 .order-card .tabs button { color: var(--ink-2); }
-.order-card .tabs button:hover { background: rgba(16, 21, 10, .08); color: var(--ink); }
+.order-card .tabs button:hover { background: rgba(0, 0, 0, .08); color: var(--ink); }
 .order-card .tabs button.on { background: var(--ink); color: var(--accent); }
-.order-card .kv { background: rgba(16, 21, 10, .07); }
+.order-card .kv { background: rgba(0, 0, 0, .07); }
 .order-card .kv div { color: var(--ink-2); }
 .order-card .kv b { color: var(--ink); font-weight: 700; }
 .order-card .btn.primary { background: var(--ink); color: var(--accent); }
 .order-card .btn.primary::before { background: var(--accent); }
 .order-card .btn.primary:hover, .order-card .btn.primary:focus-visible { color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
-.order-card .btn:disabled { background: rgba(16, 21, 10, .12); color: #5B6345; }
+.order-card .btn:disabled { background: rgba(0, 0, 0, .12); color: #5C5C5C; }
 .order-card .search-results { color: var(--fg); }
 .order-card :focus-visible { outline-color: var(--ink); }
 
@@ -238,7 +238,7 @@ svg.spark path { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-lin
 .ghost-type {
   position: absolute; z-index: -1; right: -6px; bottom: -.2em; pointer-events: none;
   font: 400 clamp(64px, 7vw, 110px)/1 var(--display); text-transform: uppercase; white-space: nowrap;
-  color: transparent; -webkit-text-stroke: 1.5px rgba(236, 244, 207, .09);
+  color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, .09);
 }
 .equity-wrap { position: relative; height: 320px; margin: 4px 10px 12px; }
 .equity-panel .empty-line { min-height: 150px; padding-top: 58px; }

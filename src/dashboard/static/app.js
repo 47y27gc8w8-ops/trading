@@ -620,7 +620,7 @@ const assetView = {
       upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down,
       priceLineColor: accent(), priceFormat: priceFormat(this.a.price),
     });
-    this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(236,244,207,.16)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
+    this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(255,255,255,.16)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
     this.chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.84, bottom: 0 } });
     this.candles.priceScale().applyOptions({ scaleMargins: { top: 0.06, bottom: 0.2 } });
     this.chart.subscribeCrosshairMove((p) => this.legend(p));

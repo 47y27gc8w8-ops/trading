@@ -28,8 +28,8 @@
 .map-panel { display: flex; flex-direction: column; }
 .map { position: relative; flex: 1; min-height: 420px; margin: 0 var(--card-pad); touch-action: pan-y; }
 .map svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; display: block; }
-.map .grid line { stroke: rgba(236, 244, 207, .06); stroke-width: 1; shape-rendering: crispEdges; }
-.map .grid line.zero { stroke: rgba(236, 244, 207, .22); }
+.map .grid line { stroke: #262626; stroke-width: 1; shape-rendering: crispEdges; }
+.map .grid line.zero { stroke: rgba(255, 255, 255, .22); }
 .map .ax text { fill: var(--faint); font-size: 12px; font-family: var(--font); font-variant-numeric: tabular-nums; }
 .map .ax text.t { fill: var(--muted); font-weight: 700; }
 .map circle.d { fill: var(--muted); fill-opacity: .28; transition: fill-opacity .25s, r .2s; cursor: pointer; }
