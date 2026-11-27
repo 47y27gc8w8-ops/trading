@@ -195,6 +195,8 @@ def asset_summary(symbol: str, typ: str, quote: dict | None, hist: pd.DataFrame 
             "market_state": quote.get("market_state"), "exchange": quote.get("exchange"),
             "bid": quote.get("bid"), "ask": quote.get("ask"), "prev_close": quote.get("prev_close"),
         })
+    if hist is not None:
+        hist = hist.dropna(subset=["close"])  # Yahoo sometimes writes a bar with no close (e.g. ^N225): NaN breaks JSON
     if hist is not None and not hist.empty:
         last = hist.iloc[-1]
         if out["price"] is None:  # quote feed down: fall back to the stored bars

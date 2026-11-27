@@ -85,7 +85,27 @@ function setLive(ok) {
   const last = state.lastOk ? " · last update " + fmtClock(new Date(state.lastOk)) : "";
   $("#live-text").textContent = ok ? "Updated " + fmtClock() : "Offline, retrying" + last;
   const f = state.feed;
+  renderFeeds();
   el.title = ok ? `Page refreshes every 15 s · quotes polled every ${f?.poll_seconds || 30} s${f?.generated ? " · last poll " + fmtClock(new Date(f.generated * 1000)) : ""}` : "The dashboard API did not answer";
+}
+
+const FEED_NAMES = { binance: "Binance", yahoo: "Yahoo Finance", coingecko: "CoinGecko" };
+function renderFeeds() {
+  const box = $("#feeds"), src = state.feed?.sources;
+  if (!box || !src) return;
+  const now = Date.now() / 1000;
+  box.innerHTML = `<h3>Quote feeds</h3>` + Object.entries(src).map(([k, v]) => {
+    const ok = !v.error && v.last_ok && now - v.last_ok < 600;
+    return `<div class="feed ${ok ? "ok" : "err"}" title="${esc(v.error || `${v.count ?? 0} quotes in ${v.ms ?? "?"} ms`)}"><i></i>${esc(FEED_NAMES[k] || k)}<span class="t num">${v.last_ok ? ago(v.last_ok) : "never"}</span></div>`;
+  }).join("");
+}
+
+/* the paper account's equity sits at the right end of the top bar, refreshed once a minute */
+let accountAt = 0;
+async function refreshAccount(force = false) {
+  if (!force && Date.now() - accountAt < 60000) return;
+  accountAt = Date.now();
+  try { const p = await getPortfolio(true); $("#account-eq").textContent = fmtUsd(p.equity); } catch {}
 }
 
 /* ----------------------------------------------------------- data load --- */
@@ -156,23 +176,25 @@ function makeChart(el, opts = {}) {
   const narrow = matchMedia("(max-width: 719px)").matches;
   return LC.createChart(el, {
     autoSize: true,
-    layout: { background: { color: "transparent" }, textColor: css("--muted"), fontFamily: css("--font"), fontSize: narrow ? 10 : 11, attributionLogo: true },
-    grid: { vertLines: { visible: false }, horzLines: { color: css("--border") } },
+    layout: { background: { color: "transparent" }, textColor: css("--faint"), fontFamily: css("--font"), fontSize: narrow ? 11 : 12, attributionLogo: false },
+    grid: { vertLines: { visible: false }, horzLines: { color: css("--grid") } },
     rightPriceScale: { borderVisible: false },
-    timeScale: { borderColor: css("--control"), timeVisible: true, secondsVisible: false, rightOffset: 4 },
+    timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 4 },
     crosshair: {
       mode: LC.CrosshairMode.Normal,
-      vertLine: { color: css("--control"), labelBackgroundColor: css("--raised") },
-      horzLine: { color: css("--control"), labelBackgroundColor: css("--raised") },
+      vertLine: { color: "#555", width: 1, style: LC.LineStyle.Solid, labelBackgroundColor: "#2a2a2a" },
+      horzLine: { color: "#555", width: 1, style: LC.LineStyle.Dashed, labelBackgroundColor: "#2a2a2a" },
     },
     handleScroll: { vertTouchDrag: false },
     ...opts,
   });
 }
-const priceFormat = (p) => { const prec = decimals(p || 1); return { type: "price", precision: prec, minMove: Math.pow(10, -prec) }; };
-const lineSeries = (chart, p) => chart.addSeries(LC.LineSeries, {
-    color: css("--accent"), lineWidth: 2, priceLineVisible: false, crosshairMarkerRadius: 4,
-  crosshairMarkerBorderColor: css("--surface"), priceFormat: priceFormat(p),
+const priceFormat = (p) => { const prec = Math.abs(p || 1) >= 1000 ? 0 : decimals(p || 1); return { type: "price", precision: prec, minMove: Math.pow(10, -prec) }; };
+/* the watched line: the one data hue, with a short fade under it (the only fill on the screen) */
+const lineSeries = (chart, p) => chart.addSeries(LC.AreaSeries, {
+  lineColor: css("--accent"), topColor: "rgba(245,165,36,.16)", bottomColor: "rgba(245,165,36,0)", lineWidth: 2,
+  priceLineVisible: false, crosshairMarkerRadius: 4, crosshairMarkerBorderColor: css("--surface"),
+  crosshairMarkerBackgroundColor: css("--accent"), priceFormat: priceFormat(p),
 });
 
 /* ============================================================ OVERVIEW === */
@@ -198,7 +220,7 @@ function assetTable(kind, assets) {
   }
   const total = rows.length, cut = !showAll[kind] && total > TABLE_LIMIT[kind];
   if (cut) rows = rows.slice(0, TABLE_LIMIT[kind]);
-  const more = total > TABLE_LIMIT[kind] ? `<div class="note" style="text-align:center"><button class="linkbtn" data-more="${kind}">${cut ? `Show all ${total}` : `Show top ${TABLE_LIMIT[kind]} only`}</button></div>` : "";
+  const more = total > TABLE_LIMIT[kind] ? `<div class="more"><button class="btn ghost" data-more="${kind}">${cut ? `Show all ${total}` : `Show top ${TABLE_LIMIT[kind]} only`}</button></div>` : "";
   return `<div class="table-wrap"><table data-kind="${kind}"><thead><tr>${cols.map(([k, label, c]) => {
     const sortable = !["range", "spark"].includes(k);
     const sorted = s.key === k && !(k === "mcap" && s.asc);
@@ -226,16 +248,17 @@ function assetTable(kind, assets) {
     }).join("")}</tbody></table></div>${more}`;
 }
 
-function moversList(assets, n = 10) {
+function moversList(assets, n = 8) {
   let rows = assets.filter((a) => a.change_24h != null).sort((x, y) => y.change_24h - x.change_24h);
   const total = rows.length;
-  if (rows.length > 2 * n) rows = rows.slice(0, n).concat(rows.slice(-n));
+  if (rows.length > 2 * n) rows = rows.slice(0, n).concat(rows.slice(-n).reverse());
   const max = Math.max(0.001, ...rows.map((a) => Math.abs(a.change_24h)));
   const step = [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 1].find((x) => x >= max) || max;
   return {
-    html: `<ol>${rows.map((a) => {
+    html: `<ol>${rows.map((a, i) => {
+      const grp = i === 0 ? `<li class="grp">Biggest gains</li>` : i === n && rows.length === 2 * n ? `<li class="grp">Biggest losses</li>` : "";
       const w = (Math.abs(a.change_24h) / step) * 50;
-      return `<li class="mover" data-sym="${esc(a.symbol)}" tabindex="0" title="${esc(a.name)} · ${kindLabel(a)} · ${sessionWord(a)}">
+      return `${grp}<li class="mover" data-sym="${esc(a.symbol)}" tabindex="0" title="${esc(a.name)} · ${kindLabel(a)} · ${sessionWord(a)}">
         <span class="s">${esc(base(a.symbol))}</span>
         <span class="track"><span class="bar ${a.change_24h >= 0 ? "up" : "down"}" style="width:${w.toFixed(2)}%"></span></span>
         <span class="v num ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></li>`;
@@ -271,6 +294,68 @@ function overviewFinding(crypto, etf, stock = []) {
   return parts.length ? parts.join("; ") + "." : "Waiting for the first prices from the collectors.";
 }
 
+/* ---------------------------------------------------- breadth tapes --- */
+/* Every tracked asset is one bar, sorted from best to worst change; up bars rise above the zero line,
+   down bars hang below it. One scale for all three tapes, so a 2 % stock day and a 2 % coin day look alike. */
+const TAPES = [
+  ["crypto", "Coins", "24 h"],
+  ["etf", "ETFs & indices", "last session"],
+  ["stock", "Stocks", "last session"],
+];
+const STEPS = [0.01, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 1];
+function breadthScale(assets) {
+  const abs = assets.map((a) => Math.abs(a.change_24h)).filter((v) => v != null && isFinite(v)).sort((x, y) => x - y);
+  if (!abs.length) return 0.05;
+  const p95 = abs[Math.floor(abs.length * 0.95)] || abs[abs.length - 1];
+  return STEPS.find((x) => x >= p95) || 1;
+}
+const median = (v) => { if (!v.length) return null; const s = [...v].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+
+function breadthHTML() {
+  return TAPES.map(([kind, label]) => `
+    <div class="tape-row">
+      <div class="tape-label"><div class="k">${label}</div><div class="v" id="tl-${kind}"></div></div>
+      <div class="tape" id="tape-${kind}" data-kind="${kind}" role="img"></div>
+    </div>`).join("") + `<div class="scale" aria-hidden="true"><span id="tape-scale"></span><span class="hide-sm">best to worst</span></div>`;
+}
+
+function drawTape(el, assets, cap) {
+  const rows = assets.filter((a) => a.change_24h != null && isFinite(a.change_24h)).sort((x, y) => y.change_24h - x.change_24h);
+  el._rows = rows;
+  const n = rows.length, W = 1000, H = 56, mid = H / 2;
+  if (!n) { el.innerHTML = ""; return; }
+  const px = el.clientWidth || 600, bw = W / n, gap = px / n >= 4 ? bw * 0.28 : 0;
+  const bars = rows.map((a, i) => {
+    const v = a.change_24h, h = Math.max(1, Math.min(1, Math.abs(v) / cap) * (mid - 1));
+    const cls = Math.abs(v) < 1e-9 ? "z" : v > 0 ? "u" : "d";
+    const y = cls === "d" ? mid : mid - h;
+    return `<rect class="${cls}" x="${(i * bw).toFixed(2)}" y="${y.toFixed(2)}" width="${Math.max(0.6, bw - gap).toFixed(2)}" height="${cls === "z" ? 1 : h.toFixed(2)}"/>`;
+  }).join("");
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><line class="zero" x1="0" x2="${W}" y1="${mid}" y2="${mid}" vector-effect="non-scaling-stroke"/>${bars}<line class="cursor" x1="0" x2="0" y1="0" y2="${H}" vector-effect="non-scaling-stroke" visibility="hidden"/></svg>`;
+  const up = rows.filter((a) => a.change_24h > 0).length;
+  el.setAttribute("aria-label", `${up} of ${n} up`);
+}
+
+function bindTape(el, read) {
+  const at = (e) => {
+    const rows = el._rows; if (!rows?.length) return null;
+    const r = el.getBoundingClientRect(), i = Math.min(rows.length - 1, Math.max(0, Math.floor(((e.clientX - r.left) / r.width) * rows.length)));
+    return { i, a: rows[i] };
+  };
+  const show = (e) => {
+    const hit = at(e); if (!hit) return;
+    const { i, a } = hit, n = el._rows.length, cur = el.querySelector(".cursor");
+    if (cur) { const x = ((i + 0.5) / n) * 1000; cur.setAttribute("x1", x); cur.setAttribute("x2", x); cur.setAttribute("visibility", "visible"); }
+    read.innerHTML = `<b>${esc(base(a.symbol))}</b><span>${esc(a.name)}</span><b class="num ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</b><span class="num">${i + 1} of ${n}</span><a href="#/asset/${encodeURIComponent(a.symbol)}">Open</a>`;
+    el._hit = a;
+  };
+  el.addEventListener("pointermove", show);
+  el.addEventListener("pointerdown", show);
+  el.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") el.querySelector(".cursor")?.setAttribute("visibility", "hidden"); });
+  // a mouse click opens the asset; a finger scrubs, then taps "Open" in the read-out
+  el.addEventListener("click", (e) => { if (e.pointerType !== "touch" && el._hit && matchMedia("(hover: hover)").matches) go(el._hit.symbol); });
+}
+
 const overviewView = {
   chart: null, series: null,
   watch: localStorage.getItem("watch") || "BTCUSDT",
@@ -281,8 +366,13 @@ const overviewView = {
       return;
     }
     if (!state.bySym[this.watch]) this.watch = WATCH.find((s) => state.bySym[s]) || state.assets[0].symbol;
+    el.classList.add("rise");
     el.innerHTML = `
       <div class="title-row"><div><h1>Markets</h1><p class="lede" id="ov-lede"></p></div></div>
+      <section class="panel mb" aria-label="Market breadth">
+        <div class="panel-head"><h2>Market breadth</h2><div class="tape-read" id="tape-read"></div></div>
+        <div class="breadth" id="breadth">${breadthHTML()}</div>
+      </section>
       <div class="lead-row">
         <section class="panel lead" aria-label="Watchlist chart">
           <div class="watch" id="watch" role="tablist"></div>
@@ -294,9 +384,9 @@ const overviewView = {
           <div id="movers"></div>
         </section>
       </div>
-      <section class="panel mb"><div class="panel-head"><h2>Crypto</h2><span class="sub">Binance spot · USDT pairs · by market cap · live 1 m bars, quotes every 30 s</span></div><div id="t-crypto"></div></section>
-      <section class="panel mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance · quotes every 30 s · 1 m bars hourly</span></div><div id="t-etf"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap · Yahoo Finance, quotes every 30 s</span></div><div id="t-stock"></div></section>`;
+      <section class="panel mb"><div class="panel-head"><h2>Coins</h2><span class="sub">Binance spot · by market cap</span></div><div id="t-crypto"></div></section>
+      <section class="panel mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance</span></div><div id="t-etf"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap</span></div><div id="t-stock"></div></section>`;
     $("#watch").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b || b.dataset.sym === this.watch) return;
       this.watch = b.dataset.sym; localStorage.setItem("watch", this.watch);
@@ -313,6 +403,7 @@ const overviewView = {
       const r = e.target.closest(".mover[data-sym], tr[data-sym]"); if (r) { e.preventDefault(); go(r.dataset.sym); }
       const th = e.target.closest("th.sortable"); if (th) { e.preventDefault(); this.sort(th); }
     });
+    TAPES.forEach(([k]) => bindTape($("#tape-" + k), $("#tape-read")));
     this.chart = makeChart($("#lead-chart"));
     this.render();
     await this.loadLead();
@@ -333,7 +424,7 @@ const overviewView = {
     const list = WATCH.map((s) => state.bySym[s]).filter(Boolean);
     $("#watch").innerHTML = list.map((a) => `
       <button role="tab" aria-selected="${a.symbol === this.watch}" class="${a.symbol === this.watch ? "on" : ""}" data-sym="${esc(a.symbol)}">
-        <span class="k">${esc(a.name)}</span>
+        <span class="k">${esc(a.type === "crypto" ? a.name : base(a.symbol) + " · " + a.name.replace(/^(State Street |iShares |Vanguard )?(SPDR )?/, ""))}</span>
         <span class="v num">${money(a, a.price)}</span>
         <span class="d num ${tone(a.change_24h)}">${fmtPct(a.change_24h)} <span class="muted">${sessionWord(a)}</span></span>
       </button>`).join("");
@@ -345,12 +436,26 @@ const overviewView = {
   render() {
     const crypto = state.assets.filter((a) => a.type === "crypto");
     const etf = state.assets.filter((a) => a.type === "etf");
-    $("#ov-lede").innerHTML = overviewFinding(crypto, etf, state.assets.filter((a) => a.type === "stock"));
+    const stock = state.assets.filter((a) => a.type === "stock");
+    $("#ov-lede").innerHTML = overviewFinding(crypto, etf, stock);
+    this.renderBreadth({ crypto, etf, stock });
     this.renderWatch();
     const m = moversList(state.assets);
     $("#movers").innerHTML = m.html;
-    $("#movers-sub").textContent = `top and bottom 10 of ${m.n} · stocks/ETFs by session`;
+    $("#movers-sub").textContent = `of ${m.n} assets`;
     this.renderTables();
+  },
+  renderBreadth(by) {
+    const cap = breadthScale(state.assets);
+    for (const [kind, , when] of TAPES) {
+      const list = by[kind], known = list.filter((a) => a.change_24h != null);
+      const up = known.filter((a) => a.change_24h > 0).length, md = median(known.map((a) => a.change_24h));
+      $("#tl-" + kind).innerHTML = `<b class="num">${up}</b> of <span class="num">${known.length}</span> up · median <span class="num ${tone(md)}">${fmtPct(md)}</span>`;
+      $("#tape-" + kind).title = `${up} of ${known.length} ${kind === "crypto" ? "coins" : kind === "etf" ? "ETFs and indices" : "stocks"} up over the ${when}`;
+      drawTape($("#tape-" + kind), list, cap);
+    }
+    $("#tape-scale").textContent = `Coins over 24 h, the rest over the last session · scale ±${(cap * 100).toFixed(0)}%`;
+    if (!$("#tape-read").innerHTML) $("#tape-read").innerHTML = `<span>${state.assets.length} assets</span>`;
   },
   renderTables() {
     $("#t-crypto").innerHTML = assetTable("crypto", state.assets.filter((a) => a.type === "crypto"));
@@ -407,6 +512,7 @@ const assetView = {
     }
     this.a = a;
     const crypto = a.type === "crypto";
+    el.classList.add("rise");
     el.innerHTML = `
       <a class="back" href="#/">← Markets</a>
       <div class="title-row">
@@ -418,14 +524,14 @@ const assetView = {
       <div class="side-layout">
         <section class="panel chart-panel">
           <div class="panel-head">
-            <div class="tabs mono" id="tfs" role="tablist" aria-label="Timeframe">${TFS.map((t) => `<button role="tab" data-tf="${t}" class="${t === this.tf ? "on" : ""}" aria-selected="${t === this.tf}">${t}</button>`).join("")}</div>
+            <div class="tabs" id="tfs" role="tablist" aria-label="Timeframe">${TFS.map((t) => `<button role="tab" data-tf="${t}" class="${t === this.tf ? "on" : ""}" aria-selected="${t === this.tf}">${t}</button>`).join("")}</div>
             <div class="ohlc" id="legend" aria-live="off"></div>
           </div>
           <div class="chart-wrap" id="chart"></div>
         </section>
         <div class="stack">
           <section class="panel"><div class="panel-head"><h2>${crypto ? "Last 24 hours" : "Last session"}</h2><span class="sub" id="a-when"></span></div><div class="stats" id="stats"></div></section>
-          ${a.tradable ? `<section class="panel" id="trade-panel"></section>` : !sym.startsWith("^") ? `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="note" style="border:0;margin:0">This asset trades in ${esc(a.currency)}. The paper portfolio is kept in USD, so only USD and USDT assets can be traded for now.</p></section>` : `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="note" style="border:0;margin:0">An index can't be bought. Use <a href="#/asset/SPY" style="text-decoration:underline">SPY</a> or <a href="#/asset/CSSPX.SW" style="text-decoration:underline">CSSPX.SW</a> for S&amp;P 500 exposure.</p></section>`}
+          ${a.tradable ? `<section class="panel" id="trade-panel"></section>` : !sym.startsWith("^") ? `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="plain">This asset trades in ${esc(a.currency)}. The paper portfolio is kept in USD, so only USD and USDT assets can be traded for now.</p></section>` : `<section class="panel"><div class="panel-head"><h2>Paper trade</h2></div><p class="plain">An index can't be bought. Use <a href="#/asset/SPY">SPY</a> or <a href="#/asset/CSSPX.SW">CSSPX.SW</a> for S&amp;P 500 exposure.</p></section>`}
         </div>
       </div>`;
     $("#tfs").addEventListener("click", (e) => {
@@ -458,7 +564,7 @@ const assetView = {
     const up = css("--positive"), down = css("--negative");
     this.candles = this.chart.addSeries(LC.CandlestickSeries, {
       upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down,
-      priceLineColor: css("--muted"), priceFormat: priceFormat(this.a.price),
+      priceLineColor: css("--accent"), priceFormat: priceFormat(this.a.price),
     });
     this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(138,140,146,.28)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
     this.chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.84, bottom: 0 } });
@@ -646,13 +752,13 @@ async function submitTrade(el) {
 /* =========================================================== PORTFOLIO === */
 /* allocation: one hue in steps (largest position darkest), cash in neutral grey */
 const SHADES = [1, 0.74, 0.56, 0.42, 0.32, 0.24];
-const shade = (i) => `rgba(74,138,214,${SHADES[Math.min(i, SHADES.length - 1)]})`;
+const shade = (i) => `rgba(245,165,36,${SHADES[Math.min(i, SHADES.length - 1)]})`;
 
 const portfolioView = {
   chart: null,
   async mount(el) {
     if (!state.assets.length) await loadOverview();
-    el.innerHTML = `<div class="portfolio">
+    el.innerHTML = `<div class="portfolio rise">
       <div class="title-row"><div><h1>Paper portfolio</h1><p class="lede" id="pf-lede">Loading the account…</p></div></div>
       <section class="panel kpis" id="pf-kpis" aria-label="Account totals"></section>
       <div class="side-layout">
@@ -660,17 +766,17 @@ const portfolioView = {
           <section class="panel"><div class="panel-head"><h2>Positions</h2><span class="sub" id="pf-npos"></span></div><div id="pf-pos"></div></section>
           <section class="panel"><div class="panel-head"><h2>Equity</h2><span class="sub">daily close, marked to market · USD</span></div><div id="pf-equity"></div></section>
           <section class="panel"><div class="panel-head"><h2>Trade history</h2><span class="sub" id="pf-ntr"></span></div><div id="pf-trades"></div></section>
-        </div>
-        <div class="stack">
-          <section class="panel" id="pf-trade"></section>
           <section class="panel"><div class="panel-head"><h2>Account</h2></div>
-            <div class="account">
+            <div class="account-form">
               <label class="field" for="pf-start">Starting cash, USD</label>
               <div class="row"><input class="input" id="pf-start" type="number" inputmode="decimal" min="1" step="100"><button class="btn" id="pf-save">Save</button></div>
               <p>Changing it re-bases the return. Trades are kept.</p>
               <button class="btn danger" id="pf-reset">Delete all trades and reset</button>
             </div>
           </section>
+        </div>
+        <div class="stack">
+          <section class="panel" id="pf-trade"></section>
         </div>
       </div></div>`;
     renderTradeForm($("#pf-trade"), "", false);
@@ -708,7 +814,7 @@ const portfolioView = {
       box.innerHTML = `<div class="equity-wrap" id="pf-chart"></div>`;
       this.chart = makeChart($("#pf-chart"), { timeScale: { borderColor: css("--control"), timeVisible: false } });
       this.series = this.chart.addSeries(LC.LineSeries, { color: css("--accent"), lineWidth: 2, priceLineVisible: false, priceFormat: { type: "price", precision: 2, minMove: 0.01 } });
-      this.series.createPriceLine({ price: p.starting_cash, color: css("--control"), lineWidth: 1, lineStyle: LC.LineStyle.Dashed, axisLabelVisible: false, title: "start" });
+      this.series.createPriceLine({ price: p.starting_cash, color: "#666", lineWidth: 1, lineStyle: LC.LineStyle.Dashed, axisLabelVisible: false, title: "start" });
     }
     this.series.setData(p.equity_curve);
     this.chart.timeScale().fitContent();
@@ -723,6 +829,7 @@ const portfolioView = {
     }
     if (state.view !== this) return;
     if (first || document.activeElement !== $("#pf-start")) $("#pf-start").value = p.starting_cash;
+    $("#account-eq").textContent = fmtUsd(p.equity);
     const n = p.positions.length, nt = p.trades.length;
     $("#pf-lede").innerHTML = nt
       ? `<b class="num ${tone(p.total_return)}">${fmtPct(p.total_return)}</b> on <span class="num">${fmtUsd(p.starting_cash)}</span> starting cash since ${fmtDate(Math.min(...p.trades.map((t) => t.time)))} · ${n} open position${n === 1 ? "" : "s"}`
@@ -740,9 +847,9 @@ const portfolioView = {
     $("#pf-npos").textContent = n ? `${n} open · cash ${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : 0}%` : "";
     if (n) {
       const pos = [...p.positions].sort((x, y) => y.value - x.value);
-      const segs = [...pos.map((x, i) => [x.weight, shade(i)]), [p.equity ? p.cash / p.equity : 1, css("--control")]];
+      const segs = [...pos.map((x, i) => [x.weight, shade(i)]), [p.equity ? p.cash / p.equity : 1, "#444"]];
       $("#pf-pos").innerHTML = `<div class="alloc" aria-hidden="true">${segs.filter(([w]) => w > 0).map(([w, c]) => `<span style="flex:${w} 1 0;background:${c}"></span>`).join("")}</div>
-        <div class="alloc-cap"><span>Allocation by value</span><span><span class="swatch" style="background:${css("--control")}"></span>Cash</span></div>
+        <div class="alloc-cap"><span>Allocation by value</span><span><span class="swatch" style="background:#444"></span>Cash</span></div>
         <div class="table-wrap"><table><thead><tr><th class="l">Asset</th><th class="hide-sm">Quantity</th><th class="hide-md">Avg cost</th><th class="hide-sm">Price</th><th>Value</th><th>P&amp;L</th><th class="hide-sm">Weight</th></tr></thead><tbody>
         ${pos.map((x, i) => `<tr class="click" data-sym="${esc(x.symbol)}" tabindex="0">
           <td class="l"><div class="asset-cell">${icon(x.symbol)}<div style="min-width:0"><div class="nm">${esc(x.name)}</div>
@@ -782,10 +889,10 @@ function storagePanel(h, mb) {
   const pct = u.pct * 100, days = ar.book_days || [];
   return `<section class="panel mb">
     <div class="panel-head"><h2>Storage budget</h2><span class="sub">${gb(u.total)} of ${gb(u.budget)} · ${gb(u.disk_free)} free on disk</span></div>
-    <div style="padding:0 20px 16px">
-      <div class="meter" style="height:8px;background:var(--control);border-radius:4px;overflow:hidden;margin:4px 0 14px"><div style="height:100%;width:${Math.max(0.5, Math.min(100, pct)).toFixed(1)}%;background:${pct >= 95 ? "var(--negative)" : pct >= 80 ? "var(--warning, #d6a64a)" : "var(--accent)"}"></div></div>
+    <div class="storage">
+      <div class="meter"><div style="width:${Math.max(0.5, Math.min(100, pct)).toFixed(1)}%;background:${pct >= 95 ? "var(--negative)" : pct >= 80 ? "var(--warning, #d6a64a)" : "var(--accent)"}"></div></div>
       <div class="stats">${ds.map(([k, v]) => `<div class="stat"><div class="k">${esc(k)}</div><div class="v num">${gb(v)}</div></div>`).join("")}</div>
-      <p class="note" style="border:0;margin:10px 0 0;padding:0">Archive: 1 m candles for <b>${ar.klines_pairs ?? "—"}</b> USDT pairs (incl. delisted) · every trade for <b>${ar.trades_pairs ?? "—"}</b> coins (${ar.trades_files ?? 0} files) · best bid/ask recorded on <b>${days.length}</b> day(s)${days.length ? ` since ${esc(days[0])}` : ""}. Book ticks are a rolling window capped at ${gb(u.book_max)}; backfills stop at 95 % of the budget.</p>
+      <p class="note">Archive: 1 m candles for <b>${ar.klines_pairs ?? "—"}</b> USDT pairs (incl. delisted) · every trade for <b>${ar.trades_pairs ?? "—"}</b> coins (${ar.trades_files ?? 0} files) · best bid/ask recorded on <b>${days.length}</b> day(s)${days.length ? ` since ${esc(days[0])}` : ""}. Book ticks are a rolling window capped at ${gb(u.book_max)}; backfills stop at 95 % of the budget.</p>
     </div></section>`;
 }
 
@@ -879,6 +986,7 @@ function startTimer() {
   state.timer = setInterval(async () => {
     if (document.hidden || !state.view?.tick) return;
     await state.view.tick($("#app"));
+    refreshAccount();
     setTitle();
   }, REFRESH_MS);
 }
@@ -890,4 +998,12 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && st
 
 attachSearch($("#search"), $("#search-results"), (a) => { $("#search").value = ""; $("#search").blur(); go(a.symbol); });
 window.addEventListener("hashchange", route);
-loadOverview().then(() => { route(); startTimer(); });
+function bootFrame() {
+  const h = location.hash.replace(/^#\/?/, "");
+  const title = h === "portfolio" ? "Paper portfolio" : h === "data" ? "Data health" : h.startsWith("asset/") ? decodeURIComponent(h.slice(6)) : "Markets";
+  const bar = (w, ht = 14) => `<span class="skel" style="width:${w};height:${ht}px"></span>`;
+  $("#app").innerHTML = `<div class="title-row"><div><h1>${esc(title)}</h1><p class="lede">${bar("34em")}</p></div></div>
+    <section class="panel mb"><div class="panel-head"><h2>${h ? "Loading" : "Market breadth"}</h2></div><div class="breadth">${[1, 2, 3].map(() => `<div class="tape-row"><div class="tape-label">${bar("9em")}</div>${bar("100%", 40)}</div>`).join("")}</div></section>`;
+}
+bootFrame();
+loadOverview().then(() => { route(); startTimer(); refreshAccount(true); });

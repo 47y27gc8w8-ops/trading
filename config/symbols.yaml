@@ -143,6 +143,7 @@ etf:
   - "^GDAXI"
   - "^N225"
   - "^FTSE"
+  - "^IRX"         # 13-week T-bill yield (% p.a.), cash return for excess-momentum rules; not tradable
 # stock: S&P 500 constituents (datasets/s-and-p-500-companies, 2026-11-23), SMI members
 #        on SIX, and a few large non-S&P names. Yahoo tickers ('.' -> '-', e.g. BRK-B).
 stock:
