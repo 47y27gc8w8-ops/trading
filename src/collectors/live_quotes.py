@@ -33,6 +33,11 @@ log = setup_logging("live_quotes")
 POLL_SECONDS = int(os.environ.get("POLL_SECONDS", 30))
 FLUSH_SECONDS = 300
 COINGECKO_EVERY = 300
+COINGECKO_TIMEOUT = (5, 12)     # connect, read; the old 30 s read timeout mostly just waited longer to fail
+COINGECKO_TRIES = 2             # one quick retry inside a call
+COINGECKO_BACKOFF_MAX = 1800    # after failed calls the next try waits 1, 2, 4 ... min, up to 30 min
+# optional free "demo" key from coingecko.com; keyless calls share a tight, IP-wide rate limit
+COINGECKO_KEY = os.environ.get("COINGECKO_API_KEY", "").strip()
 YAHOO_CHUNK = 150
 LATEST = QUOTES / "latest.json"
 
@@ -127,8 +132,21 @@ def poll_yahoo(symbols: list[str], types: dict[str, str], now: float) -> list[di
 
 
 def poll_coingecko() -> dict[str, dict]:
-    """Top 250 coins -> {BINANCE_SYMBOL: {name, market_cap, rank}} (highest market cap wins a ticker clash)."""
-    r = http.get(COINGECKO, params={"vs_currency": "usd", "per_page": 250, "page": 1}, timeout=30)
+    """Top 250 coins -> {BINANCE_SYMBOL: {name, market_cap, rank}} (highest market cap wins a ticker clash).
+
+    250 and not 100: several tracked coins rank between 100 and 250 and would lose their names."""
+    headers = {"x-cg-demo-api-key": COINGECKO_KEY} if COINGECKO_KEY else None
+    for attempt in range(COINGECKO_TRIES):
+        try:
+            r = http.get(COINGECKO, params={"vs_currency": "usd", "per_page": 250, "page": 1},
+                         headers=headers, timeout=COINGECKO_TIMEOUT)
+            if r.status_code == 429 or r.status_code >= 500:
+                r.raise_for_status()
+            break
+        except (requests.Timeout, requests.ConnectionError, requests.HTTPError):
+            if attempt == COINGECKO_TRIES - 1:
+                raise
+            time.sleep(3)
     r.raise_for_status()
     out: dict[str, dict] = {}
     for c in r.json():
@@ -155,6 +173,7 @@ class Poller:
         self.status: dict[str, dict] = {}
         self.cg: dict[str, dict] = {}
         self.cg_time = 0.0
+        self.cg_fails = 0
         self.cg_future = None
         self.buffer: dict[str, list[dict]] = {"binance": [], "yahoo": []}
         self.stop = threading.Event()
@@ -184,9 +203,12 @@ class Poller:
             cg = self.cg_future.result()
             self.cg_future, self.cg_time = None, now
             if cg:
-                self.cg = cg
-            elif not self.cg:
-                self.cg_time = now - COINGECKO_EVERY + 60  # nothing yet: retry in a minute
+                self.cg, self.cg_fails = cg, 0
+            else:
+                # back off: retry after 1, 2, 4 ... min (at most 30) instead of hammering a rate limit
+                self.cg_fails += 1
+                wait = min(60 * 2 ** (self.cg_fails - 1), COINGECKO_BACKOFF_MAX)
+                self.cg_time = now - COINGECKO_EVERY + wait
         for src, fut in futs.items():
             rows = fut.result() or []
             for r in rows:

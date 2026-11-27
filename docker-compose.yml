@@ -27,6 +27,7 @@ services:
     environment:
       TZ: UTC
       POLL_SECONDS: "30"
+      COINGECKO_API_KEY: "${COINGECKO_API_KEY:-}"   # optional free demo key, see live_quotes.py
     restart: unless-stopped
     stop_grace_period: 30s
     healthcheck:   # unhealthy if latest.json hasn't been rewritten for 2 minutes

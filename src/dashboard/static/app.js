@@ -9,6 +9,20 @@ const WATCH = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "SPY"];
 const state = { assets: [], bySym: {}, prevPrice: {}, view: null, timer: null, lastOk: 0, loadError: null, feed: null };
 
 /* ------------------------------------------------------------ helpers --- */
+/* ARCO page head: numbered eyebrow, the huge Anton title ending in a full stop, a ghost word behind */
+const PAGE_HEADS = { overview: ["01", "Live", "Markets.", "Live"], portfolio: ["02", "Paper portfolio", "Portfolio.", "Paper"], data: ["04", "Data health", "Data.", "Store"] };
+function pageHead(key, lede = "", ledeId = "", extra = "") {
+  const [n, eb, title, ghost] = PAGE_HEADS[key];
+  return `<div class="title-row"><span class="ghost-word" aria-hidden="true">${esc(ghost)}</span><div>
+    <p class="eyebrow"><span class="n">${n}</span><span class="dash"></span>${esc(eb)}</p>
+    <h1>${esc(title)}</h1>${ledeId || lede ? `<p class="lede"${ledeId ? ` id="${ledeId}"` : ""}>${lede}</p>` : ""}</div>${extra}</div>`;
+}
+/* a value already formatted, set as an Anton figure with its unit small in the accent: "+0.84%" -> +0.84 % */
+const figPct = (str) => str === "—" ? '<span class="fig muted">—</span>' : `<span class="fig">${esc(str.replace(/%$/, ""))}<small>%</small></span>`;
+const figUsd = (str) => { const m = /^([+-]?)\$(.*)$/.exec(str); return m ? `<span class="fig">${m[1]}<small class="pre">$</small>${esc(m[2])}</span>` : `<span class="fig">${esc(str)}</span>`; };
+const arrow = (v) => v == null || Math.abs(v) < 1e-9 ? "" : v > 0 ? '<i class="arw" aria-hidden="true">▲</i>' : '<i class="arw" aria-hidden="true">▼</i>';
+/* the price flash: compares with the previous poll; only changed prices light up */
+const flashCls = (sym, price) => { const prev = state.prevPrice[sym]; return prev != null && price != null && prev !== price ? (price > prev ? "flash-up" : "flash-down") : ""; };
 const $ = (sel, el = document) => el.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -90,13 +104,21 @@ function setLive(ok) {
 }
 
 const FEED_NAMES = { binance: "Binance", yahoo: "Yahoo Finance", coingecko: "CoinGecko" };
+/* ok, warn or err for one quote source. CoinGecko only adds names, market caps and ranks and is polled
+   every 5 min, so one failed call while the last good answer is under an hour old is a warning. */
+const FEED_MAX_AGE = { coingecko: 3600 };
+function feedState(k, v, now = Date.now() / 1000) {
+  const fresh = v.last_ok && now - v.last_ok < (FEED_MAX_AGE[k] || 600);
+  if (!v.error) return fresh ? "ok" : "err";
+  return fresh && FEED_MAX_AGE[k] ? "warn" : "err";
+}
 function renderFeeds() {
   const box = $("#feeds"), src = state.feed?.sources;
   if (!box || !src) return;
   const now = Date.now() / 1000;
   box.innerHTML = `<h3>Quote feeds</h3>` + Object.entries(src).map(([k, v]) => {
-    const ok = !v.error && v.last_ok && now - v.last_ok < 600;
-    return `<div class="feed ${ok ? "ok" : "err"}" title="${esc(v.error || `${v.count ?? 0} quotes in ${v.ms ?? "?"} ms`)}"><i></i>${esc(FEED_NAMES[k] || k)}<span class="t num">${v.last_ok ? ago(v.last_ok) : "never"}</span></div>`;
+    const st = feedState(k, v, now);
+    return `<div class="feed ${st}" title="${esc(st === "warn" ? `Retrying after: ${v.error}` : v.error || `${v.count ?? 0} quotes in ${v.ms ?? "?"} ms`)}"><i></i>${esc(FEED_NAMES[k] || k)}<span class="t num">${v.last_ok ? ago(v.last_ok) : "never"}</span></div>`;
   }).join("");
 }
 
@@ -182,19 +204,30 @@ function makeChart(el, opts = {}) {
     timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 4 },
     crosshair: {
       mode: LC.CrosshairMode.Normal,
-      vertLine: { color: "#555", width: 1, style: LC.LineStyle.Solid, labelBackgroundColor: "#2a2a2a" },
-      horzLine: { color: "#555", width: 1, style: LC.LineStyle.Dashed, labelBackgroundColor: "#2a2a2a" },
+      vertLine: { color: css("--control"), width: 1, style: LC.LineStyle.Solid, labelBackgroundColor: css("--night-4") },
+      horzLine: { color: css("--control"), width: 1, style: LC.LineStyle.Dashed, labelBackgroundColor: css("--night-4") },
     },
     handleScroll: { vertTouchDrag: false },
     ...opts,
   });
 }
 const priceFormat = (p) => { const prec = Math.abs(p || 1) >= 1000 ? 0 : decimals(p || 1); return { type: "price", precision: prec, minMove: Math.pow(10, -prec) }; };
-/* the watched line: the one data hue, with a short fade under it (the only fill on the screen) */
+/* the accent as the theme switcher last set it (the CSS value may be mid-fade), and an rgba of it */
+const accent = () => (window.ARCO ? window.ARCO.accent() : css("--accent"));
+const rgba = (hex, a) => { const n = parseInt(hex.replace("#", ""), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const lineColors = (hex = accent()) => ({ lineColor: hex, topColor: rgba(hex, .22), bottomColor: rgba(hex, 0), crosshairMarkerBackgroundColor: hex });
+/* the watched line: the accent, with a short fade under it */
 const lineSeries = (chart, p) => chart.addSeries(LC.AreaSeries, {
-  lineColor: css("--accent"), topColor: "rgba(245,165,36,.16)", bottomColor: "rgba(245,165,36,0)", lineWidth: 2,
-  priceLineVisible: false, crosshairMarkerRadius: 4, crosshairMarkerBorderColor: css("--surface"),
-  crosshairMarkerBackgroundColor: css("--accent"), priceFormat: priceFormat(p),
+  ...lineColors(), lineWidth: 2,
+  priceLineVisible: false, crosshairMarkerRadius: 4, crosshairMarkerBorderColor: css("--night-2"),
+  priceFormat: priceFormat(p),
+});
+/* a new accent recolours the live charts in place: no reload, no lost zoom */
+window.addEventListener("accentchange", (e) => {
+  const hex = e.detail.hex;
+  overviewView.series?.applyOptions(lineColors(hex));
+  assetView.candles?.applyOptions({ priceLineColor: hex });
+  portfolioView.series?.applyOptions({ color: hex });
 });
 
 /* ============================================================ OVERVIEW === */
@@ -227,8 +260,7 @@ function assetTable(kind, assets) {
     return `<th class="${c || ""}${sortable ? " sortable" : ""}${sorted ? " sorted" + (s.asc ? " asc" : "") : ""}" data-k="${k}"${sortable ? ` tabindex="0" aria-sort="${sorted ? (s.asc ? "ascending" : "descending") : "none"}"` : ""}>${label}</th>`;
   }).join("")}</tr></thead>
     <tbody>${rows.map((a) => {
-      const prev = state.prevPrice[a.symbol];
-      const flash = prev != null && a.price != null && prev !== a.price ? (a.price > prev ? "flash-up" : "flash-down") : "";
+      const flash = flashCls(a.symbol, a.price);
       const pos = a.high_24h > a.low_24h ? Math.min(100, Math.max(0, ((a.price - a.low_24h) / (a.high_24h - a.low_24h)) * 100)) : 50;
       const vol = a.symbol.startsWith("^") ? null : a.volume_24h;
       return `<tr class="click" data-sym="${esc(a.symbol)}" tabindex="0">
@@ -238,11 +270,11 @@ function assetTable(kind, assets) {
           <div class="sy"><span class="hide-sm">${esc(a.symbol)}</span><span class="m-sub num">${esc(base(a.symbol))} · 7d ${fmtPct(a.change_7d)}</span></div>
         </div></div></td>
         <td class="num ${flash}">${a.price == null ? '<span class="muted">—</span>' : money(a, a.price)}<span class="m-sub ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></td>
-        <td class="num hide-sm ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</td>
-        <td class="num hide-sm">${fmtPct(a.change_7d)}</td>
+        <td class="num hide-sm ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</td>
+        <td class="num hide-sm ${tone(a.change_7d)}">${fmtPct(a.change_7d)}</td>
         <td class="hide-md">${a.price == null ? '<span class="muted">—</span>' : `<span class="range num">${fmtPrice(a.low_24h)}<span class="track"><i style="left:${pos}%"></i></span>${fmtPrice(a.high_24h)}</span>`}</td>
         <td class="num hide-sm">${vol == null ? '<span class="muted">—</span>' : fmtCompact(vol, curPrefix(a))}</td>
-        <td class="hide-md">${sparkline(a.spark)}</td>
+        <td class="hide-md ${tone(a.change_7d)}">${sparkline(a.spark)}</td>
         <td class="muted hide-lg">${a.time ? ago(a.time) : "—"}</td>
       </tr>`;
     }).join("")}</tbody></table></div>${more}`;
@@ -261,7 +293,7 @@ function moversList(assets, n = 8) {
       return `${grp}<li class="mover" data-sym="${esc(a.symbol)}" tabindex="0" title="${esc(a.name)} · ${kindLabel(a)} · ${sessionWord(a)}">
         <span class="s">${esc(base(a.symbol))}</span>
         <span class="track"><span class="bar ${a.change_24h >= 0 ? "up" : "down"}" style="width:${w.toFixed(2)}%"></span></span>
-        <span class="v num ${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span></li>`;
+        <span class="v num ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</span></li>`;
     }).join("")}</ol>
     <div class="axis" aria-hidden="true"><i></i><span class="num"><b style="font-weight:400">${fmtPct(-step, 0)}</b><b style="font-weight:400">0</b><b style="font-weight:400">${fmtPct(step, 0)}</b></span><i></i></div>`,
     n: total,
@@ -314,7 +346,7 @@ const median = (v) => { if (!v.length) return null; const s = [...v].sort((a, b)
 function breadthHTML() {
   return TAPES.map(([kind, label]) => `
     <div class="tape-row">
-      <div class="tape-label"><div class="k">${label}</div><div class="v" id="tl-${kind}"></div></div>
+      <div class="tape-label"><div class="k">${label}</div><div class="md" id="tm-${kind}"></div><div class="v" id="tl-${kind}"></div></div>
       <div class="tape" id="tape-${kind}" data-kind="${kind}" role="img"></div>
     </div>`).join("") + `<div class="scale" aria-hidden="true"><span id="tape-scale"></span><span class="hide-sm">best to worst</span></div>`;
 }
@@ -362,13 +394,14 @@ const overviewView = {
   async mount(el) {
     if (!state.assets.length) await loadOverview();
     if (!state.assets.length) {
-      el.innerHTML = `<div class="title-row"><div><h1>Markets</h1></div></div><div class="panel">${errorBlock("market prices")}</div>`;
+      el.innerHTML = `${pageHead("overview")}<div class="panel">${errorBlock("market prices")}</div>`;
       return;
     }
     if (!state.bySym[this.watch]) this.watch = WATCH.find((s) => state.bySym[s]) || state.assets[0].symbol;
     el.classList.add("rise");
     el.innerHTML = `
-      <div class="title-row"><div><h1>Markets</h1><p class="lede" id="ov-lede"></p></div></div>
+      ${pageHead("overview", "", "ov-lede")}
+      <section class="ticker mb" aria-label="24 h movers, scrolling"><div class="ticker-track" id="ticker"></div></section>
       <section class="panel mb" aria-label="Market breadth">
         <div class="panel-head"><h2>Market breadth</h2><div class="tape-read" id="tape-read"></div></div>
         <div class="breadth" id="breadth">${breadthHTML()}</div>
@@ -384,9 +417,9 @@ const overviewView = {
           <div id="movers"></div>
         </section>
       </div>
-      <section class="panel mb"><div class="panel-head"><h2>Coins</h2><span class="sub">Binance spot · by market cap</span></div><div id="t-crypto"></div></section>
-      <section class="panel mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance</span></div><div id="t-etf"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap</span></div><div id="t-stock"></div></section>`;
+      <section class="panel ov-tables mb"><div class="panel-head"><h2>Coins</h2><span class="sub">Binance spot · by market cap</span></div><div id="t-crypto"></div></section>
+      <section class="panel ov-tables mb"><div class="panel-head"><h2>ETFs and indices</h2><span class="sub">Yahoo Finance</span></div><div id="t-etf"></div></section>
+      <section class="panel ov-tables"><div class="panel-head"><h2>Stocks</h2><span class="sub">S&amp;P 500, SMI and large caps · by market cap</span></div><div id="t-stock"></div></section>`;
     $("#watch").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b || b.dataset.sym === this.watch) return;
       this.watch = b.dataset.sym; localStorage.setItem("watch", this.watch);
@@ -425,8 +458,9 @@ const overviewView = {
     $("#watch").innerHTML = list.map((a) => `
       <button role="tab" aria-selected="${a.symbol === this.watch}" class="${a.symbol === this.watch ? "on" : ""}" data-sym="${esc(a.symbol)}">
         <span class="k">${esc(a.type === "crypto" ? a.name : base(a.symbol) + " · " + a.name.replace(/^(State Street |iShares |Vanguard )?(SPDR )?/, ""))}</span>
-        <span class="v num">${money(a, a.price)}</span>
-        <span class="d num ${tone(a.change_24h)}">${fmtPct(a.change_24h)} <span class="muted">${sessionWord(a)}</span></span>
+        <span class="v num ${flashCls(a.symbol, a.price)}">${money(a, a.price)}</span>
+        <span class="d num ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)} <span class="muted">${sessionWord(a)}</span></span>
+        <span class="sp ${tone(a.change_7d)}">${sparkline(a.spark, 160, 34)}</span>
       </button>`).join("");
     const a = state.bySym[this.watch];
     $("#lead-what").textContent = this.leadSpec(a).what;
@@ -442,8 +476,18 @@ const overviewView = {
     this.renderWatch();
     const m = moversList(state.assets);
     $("#movers").innerHTML = m.html;
+    this.renderTicker();
     $("#movers-sub").textContent = `of ${m.n} assets`;
     this.renderTables();
+  },
+  /* the movers as a marquee: two identical runs so the loop has no seam; the track element survives
+     each poll (only its contents change), so the scroll never restarts */
+  renderTicker() {
+    const t = $("#ticker"); if (!t) return;
+    let rows = state.assets.filter((a) => a.change_24h != null).sort((x, y) => y.change_24h - x.change_24h);
+    if (rows.length > 16) rows = rows.slice(0, 8).concat(rows.slice(-8));
+    const run = (hidden) => `<span class="run"${hidden ? ' aria-hidden="true"' : ""}>${rows.map((a) => `<a href="#/asset/${encodeURIComponent(a.symbol)}"${hidden ? ' tabindex="-1"' : ""}><b>${esc(base(a.symbol))}</b><span class="num ${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</span></a>`).join("")}</span>`;
+    t.innerHTML = run(false) + run(true);
   },
   renderBreadth(by) {
     const cap = breadthScale(state.assets);
@@ -451,6 +495,7 @@ const overviewView = {
       const list = by[kind], known = list.filter((a) => a.change_24h != null);
       const up = known.filter((a) => a.change_24h > 0).length, md = median(known.map((a) => a.change_24h));
       $("#tl-" + kind).innerHTML = `<b class="num">${up}</b> of <span class="num">${known.length}</span> up · median <span class="num ${tone(md)}">${fmtPct(md)}</span>`;
+      $("#tm-" + kind).innerHTML = `<span class="${tone(md)}">${arrow(md)}${figPct(fmtPct(md))}</span>`;
       $("#tape-" + kind).title = `${up} of ${known.length} ${kind === "crypto" ? "coins" : kind === "etf" ? "ETFs and indices" : "stocks"} up over the ${when}`;
       drawTape($("#tape-" + kind), list, cap);
     }
@@ -505,7 +550,12 @@ const assetView = {
     if (!state.assets.length) await loadOverview();
     const a = state.bySym[sym];
     if (!a) {
-      el.innerHTML = `<a class="back" href="#/">← Markets</a><div class="title-row"><div><h1>${esc(sym)}</h1>
+      // short or lower-case names (#/asset/BTC, #/asset/spy) open the tracked symbol they stand for
+      const want = sym.toUpperCase();
+      const hits = state.assets.filter((x) => x.symbol.toUpperCase() === want || base(x.symbol).toUpperCase() === want);
+      const hit = hits.find((x) => x.symbol.toUpperCase() === want) || hits.find((x) => x.type === "crypto") || hits[0];
+      if (hit) { location.replace(`#/asset/${encodeURIComponent(hit.symbol)}`); return; }
+      el.innerHTML = `<a class="back" href="#/">← Markets</a><div class="title-row"><div><p class="eyebrow"><span class="n">01</span><span class="dash"></span>Asset</p><h1>${esc(sym)}.</h1>
         <p class="lede">${state.loadError ? "The price feed is not answering." : "This symbol is not tracked. Add it in config/symbols.yaml."}</p></div></div>
         ${state.loadError ? `<div class="panel">${errorBlock("this asset")}</div>` : ""}`;
       return;
@@ -516,8 +566,9 @@ const assetView = {
     el.innerHTML = `
       <a class="back" href="#/">← Markets</a>
       <div class="title-row">
-        <div class="asset-title">${icon(sym, true)}
-          <div><h1>${esc(a.name)}</h1><div class="sy">${esc(sym)} · ${crypto ? "Binance spot" : esc(a.exchange || "Yahoo Finance")} · ${kindLabel(a)}${a.currency && a.currency !== "pts" ? " · " + esc(a.currency) : ""}</div></div>
+        <span class="ghost-word" aria-hidden="true">${esc(base(sym))}</span>
+        <div class="asset-title">
+          <div><p class="eyebrow"><span class="n">01</span><span class="dash"></span>${kindLabel(a)}</p><h1 class="${a.name.length > 26 ? "xl" : a.name.length > 14 ? "l" : ""}">${esc(a.name)}.</h1><div class="sy">${esc(sym)} · ${crypto ? "Binance spot" : esc(a.exchange || "Yahoo Finance")} · ${kindLabel(a)}${a.currency && a.currency !== "pts" ? " · " + esc(a.currency) : ""}</div></div>
         </div>
         <div class="quote"><span class="px num" id="a-price"></span><span class="chg num" id="a-chg"></span></div>
       </div>
@@ -547,8 +598,11 @@ const assetView = {
   },
   renderHeader() {
     const a = state.bySym[this.sym] || this.a, crypto = a.type === "crypto";
-    $("#a-price").textContent = money(a, a.price);
-    $("#a-chg").innerHTML = `<span class="${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span> <span class="muted">${sessionWord(a)}</span>`;
+    const px = $("#a-price"), fl = flashCls(a.symbol, a.price);
+    px.textContent = money(a, a.price);
+    px.classList.remove("flash-up", "flash-down");
+    if (fl) { void px.offsetWidth; px.classList.add(fl); }
+    $("#a-chg").innerHTML = `<span class="${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</span> <span class="muted">${sessionWord(a)}</span>`;
     $("#a-when").textContent = a.time ? (crypto ? "last trade " : a.market_state === "REGULAR" ? "market open · last trade " : "market closed · last trade ") + (Date.now() / 1000 - a.time < 86400 ? new Date(a.time * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : fmtDate(a.time)) : "";
     const st = [
       ["High", money(a, a.high_24h)], ["Low", money(a, a.low_24h)],
@@ -564,9 +618,9 @@ const assetView = {
     const up = css("--positive"), down = css("--negative");
     this.candles = this.chart.addSeries(LC.CandlestickSeries, {
       upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down,
-      priceLineColor: css("--accent"), priceFormat: priceFormat(this.a.price),
+      priceLineColor: accent(), priceFormat: priceFormat(this.a.price),
     });
-    this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(138,140,146,.28)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
+    this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(236,244,207,.16)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
     this.chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.84, bottom: 0 } });
     this.candles.priceScale().applyOptions({ scaleMargins: { top: 0.06, bottom: 0.2 } });
     this.chart.subscribeCrosshairMove((p) => this.legend(p));
@@ -653,6 +707,7 @@ async function getPortfolio(force = false) {
 
 function renderTradeForm(el, sym, fixed) {
   el.dataset.side = el.dataset.side || "buy";
+  el.classList.add("order-card");
   el.dataset.sym = sym || "";
   const side = el.dataset.side;
   el.innerHTML = `
@@ -752,26 +807,26 @@ async function submitTrade(el) {
 /* =========================================================== PORTFOLIO === */
 /* allocation: one hue in steps (largest position darkest), cash in neutral grey */
 const SHADES = [1, 0.74, 0.56, 0.42, 0.32, 0.24];
-const shade = (i) => `rgba(245,165,36,${SHADES[Math.min(i, SHADES.length - 1)]})`;
+const shade = (i) => `color-mix(in srgb, var(--accent) ${Math.round(SHADES[Math.min(i, SHADES.length - 1)] * 100)}%, transparent)`;
 
 const portfolioView = {
   chart: null,
   async mount(el) {
     if (!state.assets.length) await loadOverview();
     el.innerHTML = `<div class="portfolio rise">
-      <div class="title-row"><div><h1>Paper portfolio</h1><p class="lede" id="pf-lede">Loading the account…</p></div></div>
+      ${pageHead("portfolio", "Loading the account…", "pf-lede")}
       <section class="panel kpis" id="pf-kpis" aria-label="Account totals"></section>
       <div class="side-layout">
         <div class="stack">
+          <section class="panel equity-panel"><div class="panel-head"><h2>Equity</h2><span class="sub">daily close, marked to market · USD</span></div><div id="pf-equity"></div></section>
           <section class="panel"><div class="panel-head"><h2>Positions</h2><span class="sub" id="pf-npos"></span></div><div id="pf-pos"></div></section>
-          <section class="panel"><div class="panel-head"><h2>Equity</h2><span class="sub">daily close, marked to market · USD</span></div><div id="pf-equity"></div></section>
           <section class="panel"><div class="panel-head"><h2>Trade history</h2><span class="sub" id="pf-ntr"></span></div><div id="pf-trades"></div></section>
           <section class="panel"><div class="panel-head"><h2>Account</h2></div>
             <div class="account-form">
               <label class="field" for="pf-start">Starting cash, USD</label>
               <div class="row"><input class="input" id="pf-start" type="number" inputmode="decimal" min="1" step="100"><button class="btn" id="pf-save">Save</button></div>
               <p>Changing it re-bases the return. Trades are kept.</p>
-              <button class="btn danger" id="pf-reset">Delete all trades and reset</button>
+              <div class="danger-zone"><button class="btn danger" id="pf-reset">Delete all trades and reset</button></div>
             </div>
           </section>
         </div>
@@ -780,6 +835,11 @@ const portfolioView = {
         </div>
       </div></div>`;
     renderTradeForm($("#pf-trade"), "", false);
+    el.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-to-trade]")) return;
+      $("#pf-trade").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      $("#tf-sym")?.focus({ preventScroll: true });
+    });
     $("#pf-save").addEventListener("click", () => this.settings(false));
     $("#pf-reset").addEventListener("click", () => {
       const n = portfolioCache?.trades.length || 0;
@@ -807,14 +867,14 @@ const portfolioView = {
     const box = $("#pf-equity");
     if (p.equity_curve.length < 2) {
       if (this.chart) { this.chart.remove(); this.chart = null; }
-      box.innerHTML = `<div class="empty-line">${p.trades.length ? "The equity line starts after the first full day with a position." : "Equity is drawn day by day once you place the first trade."} Today: <b class="num">${fmtUsd(p.equity)}</b></div>`;
+      box.innerHTML = `<div class="empty-line"><span class="ghost-type" aria-hidden="true">Equity</span>${p.trades.length ? "The equity line starts after the first full day with a position." : "Equity is drawn day by day once you place the first trade."} Today: <b class="num">${fmtUsd(p.equity)}</b></div>`;
       return;
     }
     if (!this.chart) {
       box.innerHTML = `<div class="equity-wrap" id="pf-chart"></div>`;
       this.chart = makeChart($("#pf-chart"), { timeScale: { borderColor: css("--control"), timeVisible: false } });
-      this.series = this.chart.addSeries(LC.LineSeries, { color: css("--accent"), lineWidth: 2, priceLineVisible: false, priceFormat: { type: "price", precision: 2, minMove: 0.01 } });
-      this.series.createPriceLine({ price: p.starting_cash, color: "#666", lineWidth: 1, lineStyle: LC.LineStyle.Dashed, axisLabelVisible: false, title: "start" });
+      this.series = this.chart.addSeries(LC.LineSeries, { color: accent(), lineWidth: 2, priceLineVisible: false, priceFormat: { type: "price", precision: 2, minMove: 0.01 } });
+      this.series.createPriceLine({ price: p.starting_cash, color: css("--faint"), lineWidth: 1, lineStyle: LC.LineStyle.Dashed, axisLabelVisible: false, title: "start" });
     }
     this.series.setData(p.equity_curve);
     this.chart.timeScale().fitContent();
@@ -835,11 +895,11 @@ const portfolioView = {
       ? `<b class="num ${tone(p.total_return)}">${fmtPct(p.total_return)}</b> on <span class="num">${fmtUsd(p.starting_cash)}</span> starting cash since ${fmtDate(Math.min(...p.trades.map((t) => t.time)))} · ${n} open position${n === 1 ? "" : "s"}`
       : `Starting cash <b class="num">${fmtUsd(p.starting_cash)}</b> · no trades yet. Prices are the stored market data; no broker, no real money.`;
     const k = [
-      ["Equity", fmtUsd(p.equity), `<span class="num ${tone(p.total_return)}">${fmtPct(p.total_return)}</span> since start`, "lead"],
-      ["Cash", fmtUsd(p.cash), `${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : "0.0"}% of equity`],
-      ["In positions", fmtUsd(p.positions_value), `${n} open`],
-      ["Unrealized P&amp;L", `<span class="${tone(p.unrealized_pnl, 0.005)}">${fmtSignedUsd(p.unrealized_pnl)}</span>`, "on open positions"],
-      ["Realized P&amp;L", `<span class="${tone(p.realized_pnl, 0.005)}">${fmtSignedUsd(p.realized_pnl)}</span>`, `after <span class="num">${fmtUsd(p.fees_paid)}</span> fees`],
+      ["Equity", figUsd(fmtUsd(p.equity)), `<span class="num ${tone(p.total_return)}">${arrow(p.total_return)}${fmtPct(p.total_return)}</span> since start`, "lead"],
+      ["Cash", figUsd(fmtUsd(p.cash)), `${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : "0.0"}% of equity`],
+      ["In positions", figUsd(fmtUsd(p.positions_value)), `${n} open`],
+      ["Unrealized P&amp;L", `<span class="${tone(p.unrealized_pnl, 0.005)}">${figUsd(fmtSignedUsd(p.unrealized_pnl))}</span>`, "on open positions"],
+      ["Realized P&amp;L", `<span class="${tone(p.realized_pnl, 0.005)}">${figUsd(fmtSignedUsd(p.realized_pnl))}</span>`, `after <span class="num">${fmtUsd(p.fees_paid)}</span> fees`],
     ];
     $("#pf-kpis").innerHTML = k.map(([a, b, c, lead]) => `<div class="kpi${lead ? " lead" : ""}"><div class="k">${a}</div><div class="v num">${b}</div><div class="s">${c}</div></div>`).join("");
     this.renderEquity(p);
@@ -847,19 +907,19 @@ const portfolioView = {
     $("#pf-npos").textContent = n ? `${n} open · cash ${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : 0}%` : "";
     if (n) {
       const pos = [...p.positions].sort((x, y) => y.value - x.value);
-      const segs = [...pos.map((x, i) => [x.weight, shade(i)]), [p.equity ? p.cash / p.equity : 1, "#444"]];
+      const segs = [...pos.map((x, i) => [x.weight, shade(i)]), [p.equity ? p.cash / p.equity : 1, "var(--night-4)"]];
       $("#pf-pos").innerHTML = `<div class="alloc" aria-hidden="true">${segs.filter(([w]) => w > 0).map(([w, c]) => `<span style="flex:${w} 1 0;background:${c}"></span>`).join("")}</div>
-        <div class="alloc-cap"><span>Allocation by value</span><span><span class="swatch" style="background:#444"></span>Cash</span></div>
+        <div class="alloc-cap"><span>Allocation by value</span><span><span class="swatch" style="background:var(--night-4)"></span>Cash</span></div>
         <div class="table-wrap"><table><thead><tr><th class="l">Asset</th><th class="hide-sm">Quantity</th><th class="hide-md">Avg cost</th><th class="hide-sm">Price</th><th>Value</th><th>P&amp;L</th><th class="hide-sm">Weight</th></tr></thead><tbody>
         ${pos.map((x, i) => `<tr class="click" data-sym="${esc(x.symbol)}" tabindex="0">
           <td class="l"><div class="asset-cell">${icon(x.symbol)}<div style="min-width:0"><div class="nm">${esc(x.name)}</div>
             <div class="sy"><span class="hide-sm">${esc(x.symbol)}</span><span class="m-sub num">${fmtQty(x.qty)} ${esc(base(x.symbol))} · avg $${fmtPrice(x.avg_cost)}</span></div></div></div></td>
           <td class="num hide-sm">${fmtQty(x.qty)}</td><td class="num hide-md">$${fmtPrice(x.avg_cost)}</td><td class="num hide-sm">$${fmtPrice(x.price)}</td>
           <td class="num">${fmtUsd(x.value)}</td>
-          <td class="num"><span class="${tone(x.pnl, 0.005)}">${fmtSignedUsd(x.pnl)}</span><div class="muted" style="font-size:12px">${fmtPct(x.pnl_pct)}</div></td>
+          <td class="num"><span class="${tone(x.pnl, 0.005)}">${arrow(x.pnl)}${fmtSignedUsd(x.pnl)}</span><div class="muted" style="font-size:12px">${fmtPct(x.pnl_pct)}</div></td>
           <td class="num hide-sm"><span class="swatch" style="background:${shade(i)}"></span>${(x.weight * 100).toFixed(1)}%</td></tr>`).join("")}</tbody></table></div>`;
     } else {
-      $("#pf-pos").innerHTML = `<div class="empty-line">No open positions. All <b class="num">${fmtUsd(p.cash)}</b> is in cash; buy something in <b>Paper trade</b>.</div>`;
+      $("#pf-pos").innerHTML = `<div class="empty-line"><span class="ghost-type" aria-hidden="true">Cash</span>No open positions. All <b class="num">${fmtUsd(p.cash)}</b> is in cash; buy something in <b>Paper trade</b>.<button class="btn ghost" data-to-trade>Paper trade <span class="arr">→</span></button></div>`;
     }
 
     $("#pf-ntr").textContent = nt ? `${nt} trade${nt === 1 ? "" : "s"} · newest first` : "";
@@ -868,12 +928,12 @@ const portfolioView = {
         const cash = t.side === "buy" ? -(t.qty * t.price + t.fee) : t.qty * t.price - t.fee;
         const desc = `${t.side} of ${fmtQty(t.qty)} ${base(t.symbol)} on ${fmtDateTime(t.time)}`;
         return `<tr><td class="l muted num">${fmtDateTime(t.time)}</td><td class="l">${esc(base(t.symbol))}</td>
-        <td class="l">${t.side === "buy" ? "Buy" : "Sell"}</td>
+        <td class="l"><span class="pill ${t.side === "buy" ? "pos" : "neg"}">${t.side === "buy" ? "Buy" : "Sell"}</span></td>
         <td class="num">${fmtQty(t.qty)}</td><td class="num">$${fmtPrice(t.price)}</td><td class="num hide-sm">${fmtUsd(t.fee)}</td>
         <td class="num">${fmtSignedUsd(cash)}</td>
         <td><button class="btn icon" data-del="${esc(t.id)}" data-desc="${esc(desc)}" aria-label="Delete ${esc(desc)}" title="Delete trade"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></td></tr>`;
       }).join("")}</tbody></table></div>`
-      : `<div class="empty-line">No trades yet. Each paper buy or sell is listed here and can be deleted.</div>`;
+      : `<div class="empty-line"><span class="ghost-type" aria-hidden="true">No trades</span>No trades yet. Each paper buy or sell is listed here and can be deleted.<button class="btn ghost" data-to-trade>Paper trade <span class="arr">→</span></button></div>`;
     updateTradeEstimate($("#pf-trade"));
   },
   unmount() { if (this.chart) { this.chart.remove(); this.chart = null; } },
@@ -881,6 +941,8 @@ const portfolioView = {
 window.portfolioView = portfolioView;
 
 /* ================================================================ DATA === */
+/* storage segments: shades of the accent, or the warn / down colour once the budget runs short */
+const segColor = (i, pct) => `color-mix(in srgb, ${pct >= 95 ? "var(--down)" : pct >= 80 ? "var(--warn)" : "var(--accent)"} ${Math.max(28, 100 - i * 14)}%, var(--night-3))`;
 function storagePanel(h, mb) {
   const u = h.storage, ar = h.archive || {};
   if (!u) return "";
@@ -890,15 +952,16 @@ function storagePanel(h, mb) {
   return `<section class="panel mb">
     <div class="panel-head"><h2>Storage budget</h2><span class="sub">${gb(u.total)} of ${gb(u.budget)} · ${gb(u.disk_free)} free on disk</span></div>
     <div class="storage">
-      <div class="meter"><div style="width:${Math.max(0.5, Math.min(100, pct)).toFixed(1)}%;background:${pct >= 95 ? "var(--negative)" : pct >= 80 ? "var(--warning, #d6a64a)" : "var(--accent)"}"></div></div>
-      <div class="stats">${ds.map(([k, v]) => `<div class="stat"><div class="k">${esc(k)}</div><div class="v num">${gb(v)}</div></div>`).join("")}</div>
+      <div class="meter" role="img" aria-label="${gb(u.total)} of ${gb(u.budget)} used">${ds.map(([, v], i) => `<span style="width:${Math.max(0.4, (v / u.budget) * 100).toFixed(2)}%;background:${segColor(i, pct)}"></span>`).join("")}</div>
+      <div class="stats">${ds.map(([k, v], i) => `<div class="stat"><div class="k"><span class="swatch" style="background:${segColor(i, pct)}"></span>${esc(k)}</div><div class="v num">${gb(v)}</div></div>`).join("")}</div>
       <p class="note">Archive: 1 m candles for <b>${ar.klines_pairs ?? "—"}</b> USDT pairs (incl. delisted) · every trade for <b>${ar.trades_pairs ?? "—"}</b> coins (${ar.trades_files ?? 0} files) · best bid/ask recorded on <b>${days.length}</b> day(s)${days.length ? ` since ${esc(days[0])}` : ""}. Book ticks are a rolling window capped at ${gb(u.book_max)}; backfills stop at 95 % of the budget.</p>
     </div></section>`;
 }
 
 const dataView = {
   async mount(el) {
-    el.innerHTML = `<div class="title-row"><div><h1>Data health</h1><p class="lede">Scanning the Parquet store… (cached for 10 min, the first scan takes about 10 s)</p></div></div>`;
+    this.shown = false;
+    el.innerHTML = pageHead("data", "Scanning the Parquet store… (cached for 10 min, the first scan takes about 10 s)");
     el.addEventListener("click", (e) => { const r = e.target.closest("tr[data-sym]"); if (r) go(r.dataset.sym); });
     el.addEventListener("keydown", (e) => { const r = e.target.closest("tr[data-sym]"); if (r && e.key === "Enter") go(r.dataset.sym); });
     await this.tick(el);
@@ -908,7 +971,7 @@ const dataView = {
     try { h = await api("/api/health"); }
     catch (e) {
       if (state.view !== this) return;
-      el.innerHTML = `<div class="title-row"><div><h1>Data health</h1></div></div><div class="panel">${errorBlock("data health", "dataView.tick(document.getElementById('app'))")}</div>`;
+      el.innerHTML = `${pageHead("data")}<div class="panel">${errorBlock("data health", "dataView.tick(document.getElementById('app'))")}</div>`;
       return;
     }
     if (state.view !== this) return;
@@ -920,16 +983,23 @@ const dataView = {
     const yOk = yr && !yr.failed.length;
     const fd = h.feed || {}, srcs = Object.entries(fd.sources || {});
     const fresh = fd.generated && Date.now() / 1000 - fd.generated < 3 * (fd.poll_seconds || 30);
-    const srcOk = srcs.filter(([, v]) => !v.error && v.last_ok && Date.now() / 1000 - v.last_ok < 600);
+    const srcSt = Object.fromEntries(srcs.map(([k, v]) => [k, feedState(k, v)]));
+    const srcOk = srcs.filter(([k]) => srcSt[k] === "ok");
     const nQuotes = state.assets.filter((a) => a.fetched && Date.now() / 1000 - a.fetched < 120).length;
-    const lede = [
-      feeds.length ? `<b>${live.length} of ${feeds.length}</b> live crypto feeds under 5 min behind${stale.length ? `; behind: ${stale.map((r) => esc(base(r.symbol))).join(", ")}` : ""}` : "No live feeds found",
-      yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${yr.failed.length > 8 ? yr.failed.length + " symbols" : esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run",
-      fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k, v]) => `${esc(k)} ${v.error ? '<span class="down">error</span>' : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>',
-      `store scanned ${ago(h.generated)}`,
-    ].join(" · ");
+    /* the status sentence, each clause as a pill coloured by its state: ok, warn or error */
+    const srcErr = srcs.some(([k]) => srcSt[k] === "err"), srcWarn = srcs.some(([k]) => srcSt[k] === "warn");
+    const parts = [
+      [feeds.length ? `<b>${live.length} of ${feeds.length}</b> live crypto feeds under 5 min behind${stale.length ? `; behind: ${stale.map((r) => esc(base(r.symbol))).join(", ")}` : ""}` : "No live feeds found", !feeds.length ? "neg" : stale.length ? "warn" : "pos"],
+      [yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${yr.failed.length > 8 ? yr.failed.length + " symbols" : esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run", !yr ? "warn" : yOk ? "pos" : "neg"],
+      [fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k]) => `${esc(k)} ${srcSt[k] === "err" ? '<span class="down">error</span>' : srcSt[k] === "warn" ? "retrying" : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>', !fd.generated || !fresh || srcErr ? "neg" : srcWarn ? "warn" : "pos"],
+      [`store scanned ${ago(h.generated)}`, "neutral"],
+    ];
+    const lede = parts.map(([t, k], i) => `<span class="pill status ${k}"><span class="dot"></span><span>${t}${i === parts.length - 1 ? "." : ""}</span></span>`).join('<span class="sr"> · </span>');
+    // the reveal plays on the first render only; the 15 s re-render must not replay it
+    el.classList.toggle("rise", !this.shown); this.shown = true;
     el.innerHTML = `
-      <div class="title-row"><div><h1>Data health</h1><p class="lede">${lede}.</p></div></div>
+      ${pageHead("data")}
+      <div class="status-line mb" role="status">${lede}</div>
       <section class="panel kpis four" aria-label="Store totals">
         <div class="kpi"><div class="k">Rows stored</div><div class="v num">${rows.toLocaleString("en-US")}</div><div class="s">${h.rows.length} datasets</div></div>
         <div class="kpi"><div class="k">Size on disk</div><div class="v num">${mb(size)}</div><div class="s">Parquet, local</div></div>
@@ -944,7 +1014,7 @@ const dataView = {
           <td class="l muted">${esc(r.dataset)}</td><td class="num">${r.first ? fmtDate(r.first) : "—"}</td>
           <td class="num">${r.last ? (r.dataset.endsWith(" 1d") ? fmtDate(r.last) : fmtDateTime(r.last)) : "—"}</td>
           <td class="num">${(r.rows || 0).toLocaleString("en-US")}</td><td class="num">${r.gaps ?? '<span class="muted">—</span>'}</td><td class="num">${r.missing != null ? r.missing.toLocaleString("en-US") : '<span class="muted">—</span>'}</td>
-          <td class="l">${r.lag_min != null ? `<span class="pill ${r.lag_min < 5 ? "pos" : "neg"}">${r.lag_min < 5 ? "Live" : Math.round(r.lag_min) + " min behind"}</span>` : `<span class="muted">${r.last ? ago(r.last) : "—"}</span>`}</td>
+          <td class="l">${r.lag_min != null ? `<span class="pill ${r.lag_min < 5 ? "pos live" : "neg"}"><span class="dot"></span>${r.lag_min < 5 ? "Live" : Math.round(r.lag_min) + " min behind"}</span>` : `<span class="muted">${r.last ? ago(r.last) : "—"}</span>`}</td>
           <td class="num muted">${r.size ? mb(r.size) : "—"}</td></tr>`).join("")}</tbody></table></div>
         <div class="note">Crypto gaps are counted around the clock and are mostly real exchange outages, such as Binance maintenance. ETF 1 m gaps are counted within each session; thin tickers like CSSPX.SW only have bars in minutes with trades.</div>
       </section>`;
@@ -1000,9 +1070,9 @@ attachSearch($("#search"), $("#search-results"), (a) => { $("#search").value = "
 window.addEventListener("hashchange", route);
 function bootFrame() {
   const h = location.hash.replace(/^#\/?/, "");
-  const title = h === "portfolio" ? "Paper portfolio" : h === "data" ? "Data health" : h.startsWith("asset/") ? decodeURIComponent(h.slice(6)) : "Markets";
   const bar = (w, ht = 14) => `<span class="skel" style="width:${w};height:${ht}px"></span>`;
-  $("#app").innerHTML = `<div class="title-row"><div><h1>${esc(title)}</h1><p class="lede">${bar("34em")}</p></div></div>
+  const key = h === "portfolio" ? "portfolio" : h === "data" ? "data" : h.startsWith("asset/") ? null : "overview";
+  $("#app").innerHTML = `${key ? pageHead(key, bar("34em")) : `<div class="title-row"><div><h1>${esc(decodeURIComponent(h.slice(6)))}</h1></div></div>`}
     <section class="panel mb"><div class="panel-head"><h2>${h ? "Loading" : "Market breadth"}</h2></div><div class="breadth">${[1, 2, 3].map(() => `<div class="tape-row"><div class="tape-label">${bar("9em")}</div>${bar("100%", 40)}</div>`).join("")}</div></section>`;
 }
 bootFrame();
