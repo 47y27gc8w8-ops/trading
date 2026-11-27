@@ -1,0 +1,42 @@
+{
+ "markets-desktop": {
+  "overflowX": 0
+ },
+ "asset-desktop": {
+  "overflowX": 0
+ },
+ "portfolio-desktop": {
+  "overflowX": 0
+ },
+ "data-desktop": {
+  "overflowX": 0
+ },
+ "leaderboard-desktop": {
+  "overflowX": 0
+ },
+ "desktop": {
+  "consoleErrors": [],
+  "httpErrors": [],
+  "external": []
+ },
+ "markets-mobile": {
+  "overflowX": 0
+ },
+ "asset-mobile": {
+  "overflowX": 0
+ },
+ "portfolio-mobile": {
+  "overflowX": 0
+ },
+ "data-mobile": {
+  "overflowX": 0
+ },
+ "leaderboard-mobile": {
+  "overflowX": 0
+ },
+ "mobile": {
+  "consoleErrors": [],
+  "httpErrors": [],
+  "external": []
+ }
+}
