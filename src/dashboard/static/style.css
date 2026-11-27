@@ -148,8 +148,8 @@ svg.spark path { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-lin
   font: 400 15px var(--font); font-variant-numeric: tabular-nums; transition: border-color .15s, background .15s;
 }
 .input::placeholder { color: var(--faint); }
-.input:hover { background: #222; }
-.input:focus { border-color: var(--control); background: var(--raised); }
+.input:hover { background: var(--night-4); }
+.input:focus { border-color: var(--accent); background: var(--raised); }
 .form { padding: 4px var(--card-pad) var(--card-pad); display: grid; gap: 16px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .kv { display: grid; gap: 8px; padding: 14px 16px; background: var(--raised); border-radius: var(--radius-in); }
@@ -159,26 +159,57 @@ svg.spark path { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-lin
 .form .tabs.side { display: grid; grid-template-columns: 1fr 1fr; }
 
 /* ================================================================ asset === */
-.asset-title { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.asset-title .sy { color: var(--faint); margin-top: 3px; font-size: 13px; }
-.quote { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.quote .px { font-size: var(--fs-lead); line-height: 1.1; font-weight: 500; letter-spacing: -.03em; }
-.quote .chg { font-size: 15px; }
-.side-layout { display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: var(--gap); align-items: start; }
-.chart-panel .panel-head { padding-top: 12px; }
+.asset-title { display: flex; align-items: flex-end; gap: 18px; min-width: 0; }
+.asset-title h1.l { font-size: clamp(48px, 6.4vw, 110px); }
+.asset-title h1.xl { font-size: clamp(40px, 4.6vw, 76px); line-height: .98; }
+.asset-title .sy { color: var(--muted); margin-top: 12px; font-size: 14px; font-weight: 500; }
+.quote { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.quote .px { font: 400 clamp(44px, 5.6vw, 88px)/.95 var(--display); letter-spacing: .01em; color: var(--accent); border-radius: 10px; padding: 0 6px; }
+.quote .chg { font-size: 16px; font-weight: 600; }
+.side-layout { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: var(--gap); align-items: start; }
+.chart-panel .panel-head { padding-top: 14px; flex-wrap: wrap; justify-content: flex-start; gap: 10px 20px; }
+.chart-panel .tabs { flex: none; }
 .chart-panel { display: flex; flex-direction: column; align-self: stretch; }
 /* the chart library sizes itself to its box: pin it, so a stretching frame can't feed back into it */
 .chart-wrap > .tv-lightweight-charts { position: absolute !important; inset: 0; }
-.chart-wrap { position: relative; flex: 1; min-height: clamp(420px, calc(100vh - 290px), 700px); margin: 4px 10px 12px; }
+.chart-wrap { position: relative; flex: 1; min-height: clamp(420px, calc(100vh - 300px), 700px); margin: 4px 10px 12px; }
 .ohlc { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--faint); font-variant-numeric: tabular-nums; }
-.ohlc b { color: var(--text); font-weight: 500; }
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 0 8px 8px; }
-.stat { padding: 10px 14px; min-width: 0; border-radius: var(--radius-in); }
-.stat .k { color: var(--faint); font-size: var(--fs-small); }
-.stat .v { margin-top: 2px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ohlc b { color: var(--fg); font-weight: 600; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 10px 10px; }
+.stat { padding: 12px 14px; min-width: 0; border-radius: var(--radius-in); background: var(--night-3); }
+.stat .k { color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.stat .v { margin-top: 4px; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chart-empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); z-index: 3; pointer-events: none; }
 .plain { margin: 0; padding: 0 var(--card-pad) 20px; color: var(--muted); }
-.plain a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #555; }
+.plain a { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--accent); }
+
+/* ========================================================== order card === */
+/* the trade form as a light card in the accent's paler tone, like ARCO's buying block; ink inside */
+.order-card {
+  --oc: color-mix(in srgb, var(--accent) 26%, var(--paper));
+  background: var(--oc); color: var(--ink);
+}
+.order-card .panel-head h2 { font-size: 34px; color: var(--ink); }
+.order-card .panel-head h2::after { content: "."; }
+.order-card .panel-head .sub { color: var(--ink-2); }
+.order-card .field { color: var(--ink-2); font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.order-card .input { background: rgba(255, 255, 255, .62); color: var(--ink); border: 2px solid transparent; }
+.order-card .input::placeholder { color: #6E7656; }
+.order-card .input:hover { background: rgba(255, 255, 255, .8); }
+.order-card .input:focus { border-color: var(--ink); background: #fff; }
+.order-card .tabs { background: rgba(16, 21, 10, .09); }
+.order-card .tabs button { color: var(--ink-2); }
+.order-card .tabs button:hover { background: rgba(16, 21, 10, .08); color: var(--ink); }
+.order-card .tabs button.on { background: var(--ink); color: var(--accent); }
+.order-card .kv { background: rgba(16, 21, 10, .07); }
+.order-card .kv div { color: var(--ink-2); }
+.order-card .kv b { color: var(--ink); font-weight: 700; }
+.order-card .btn.primary { background: var(--ink); color: var(--accent); }
+.order-card .btn.primary::before { background: var(--accent); }
+.order-card .btn.primary:hover, .order-card .btn.primary:focus-visible { color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+.order-card .btn:disabled { background: rgba(16, 21, 10, .12); color: #5B6345; }
+.order-card .search-results { color: var(--fg); }
+.order-card :focus-visible { outline-color: var(--ink); }
 
 /* ============================================================ portfolio === */
 .kpis { display: grid; grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr)); margin-bottom: var(--gap); padding: 8px 0; }
@@ -271,6 +302,8 @@ svg.spark path { fill: none; stroke: var(--faint); stroke-width: 1.4; stroke-lin
   .side-layout > .stack + .stack { grid-template-columns: minmax(0, 1fr); }
   .chart-wrap { min-height: 360px; margin: 0 4px 8px; }
   .asset-title .monogram { display: none; }
+  .quote { align-items: flex-start; }
+  .order-card .panel-head h2 { font-size: 28px; }
   .chart-panel .panel-head { flex-direction: column; align-items: stretch; gap: 8px; padding-left: 12px; padding-right: 12px; }
   .chart-panel .tabs { display: flex; }
   .chart-panel .tabs button { flex: 1; min-width: 0; padding: 0; }

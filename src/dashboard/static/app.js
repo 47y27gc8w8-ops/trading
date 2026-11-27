@@ -542,7 +542,7 @@ const assetView = {
     if (!state.assets.length) await loadOverview();
     const a = state.bySym[sym];
     if (!a) {
-      el.innerHTML = `<a class="back" href="#/">← Markets</a><div class="title-row"><div><h1>${esc(sym)}</h1>
+      el.innerHTML = `<a class="back" href="#/">← Markets</a><div class="title-row"><div><p class="eyebrow"><span class="n">01</span><span class="dash"></span>Asset</p><h1>${esc(sym)}.</h1>
         <p class="lede">${state.loadError ? "The price feed is not answering." : "This symbol is not tracked. Add it in config/symbols.yaml."}</p></div></div>
         ${state.loadError ? `<div class="panel">${errorBlock("this asset")}</div>` : ""}`;
       return;
@@ -553,8 +553,9 @@ const assetView = {
     el.innerHTML = `
       <a class="back" href="#/">← Markets</a>
       <div class="title-row">
-        <div class="asset-title">${icon(sym, true)}
-          <div><h1>${esc(a.name)}</h1><div class="sy">${esc(sym)} · ${crypto ? "Binance spot" : esc(a.exchange || "Yahoo Finance")} · ${kindLabel(a)}${a.currency && a.currency !== "pts" ? " · " + esc(a.currency) : ""}</div></div>
+        <span class="ghost-word" aria-hidden="true">${esc(base(sym))}</span>
+        <div class="asset-title">
+          <div><p class="eyebrow"><span class="n">01</span><span class="dash"></span>${kindLabel(a)}</p><h1 class="${a.name.length > 26 ? "xl" : a.name.length > 14 ? "l" : ""}">${esc(a.name)}.</h1><div class="sy">${esc(sym)} · ${crypto ? "Binance spot" : esc(a.exchange || "Yahoo Finance")} · ${kindLabel(a)}${a.currency && a.currency !== "pts" ? " · " + esc(a.currency) : ""}</div></div>
         </div>
         <div class="quote"><span class="px num" id="a-price"></span><span class="chg num" id="a-chg"></span></div>
       </div>
@@ -584,8 +585,11 @@ const assetView = {
   },
   renderHeader() {
     const a = state.bySym[this.sym] || this.a, crypto = a.type === "crypto";
-    $("#a-price").textContent = money(a, a.price);
-    $("#a-chg").innerHTML = `<span class="${tone(a.change_24h)}">${fmtPct(a.change_24h)}</span> <span class="muted">${sessionWord(a)}</span>`;
+    const px = $("#a-price"), fl = flashCls(a.symbol, a.price);
+    px.textContent = money(a, a.price);
+    px.classList.remove("flash-up", "flash-down");
+    if (fl) { void px.offsetWidth; px.classList.add(fl); }
+    $("#a-chg").innerHTML = `<span class="${tone(a.change_24h)}">${arrow(a.change_24h)}${fmtPct(a.change_24h)}</span> <span class="muted">${sessionWord(a)}</span>`;
     $("#a-when").textContent = a.time ? (crypto ? "last trade " : a.market_state === "REGULAR" ? "market open · last trade " : "market closed · last trade ") + (Date.now() / 1000 - a.time < 86400 ? new Date(a.time * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : fmtDate(a.time)) : "";
     const st = [
       ["High", money(a, a.high_24h)], ["Low", money(a, a.low_24h)],
@@ -690,6 +694,7 @@ async function getPortfolio(force = false) {
 
 function renderTradeForm(el, sym, fixed) {
   el.dataset.side = el.dataset.side || "buy";
+  el.classList.add("order-card");
   el.dataset.sym = sym || "";
   const side = el.dataset.side;
   el.innerHTML = `
