@@ -584,16 +584,26 @@ def api_leaderboard():
     if _lb_cache["mtime"] != mtime:
         raw = json.loads(LEADERBOARD.read_text())
         kinds = universe()
+        # leaderboard.py writes one entry per profile, so a parameter set that wins several profiles
+        # appears several times with identical numbers. Show it once and list every profile it won.
+        merged: dict = {}
+        for e in raw.get("entries", []):
+            key = (e.get("strategy"), e.get("tag"), json.dumps(e.get("params") or {}, sort_keys=True))
+            if key in merged:
+                merged[key]["_profiles"].append(e.get("profile"))
+                merged[key]["_files"].append(e.get("variant_file"))
+            else:
+                merged[key] = {**e, "_profiles": [e.get("profile")], "_files": [e.get("variant_file")]}
         entries = []
-        for i, e in enumerate(raw.get("entries", [])):
+        for i, e in enumerate(merged.values()):
             syms = [str(s) for s in e.get("symbols") or []]
             classes = sorted({kinds.get(s) or ("crypto" if s.endswith("USDT") else "other") for s in syms})
             longs = (e.get("signal_now") or {}).get("long") or []
             entries.append({
-                "id": i, "strategy": e.get("strategy"), "tag": e.get("tag"), "profile": e.get("profile"),
+                "id": i, "strategy": e.get("strategy"), "tag": e.get("tag"), "profile": e.get("profile"), "profiles": e["_profiles"],
                 "kind": e.get("kind"), "symbols": syms, "classes": classes,
                 "low_confidence": bool(e.get("confidence_note")), "stale": bool(e.get("stale")),
-                "params": e.get("params") or {}, "variant_file": e.get("variant_file"),
+                "params": e.get("params") or {}, "variant_file": e.get("variant_file"), "variant_files": e["_files"],
                 **{k: e.get(k) for k in (
                     "is_yearly_pct", "oos_yearly_pct", "conservative_yearly_pct", "worst_max_dd_pct",
                     "position_pct_for_10pct_dd", "is_win_rate", "oos_win_rate", "is_trades", "oos_trades",

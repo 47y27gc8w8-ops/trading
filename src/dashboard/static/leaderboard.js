@@ -24,6 +24,7 @@ const signed = (v, d = 1) => (v == null ? "–" : `${v > 0 ? "+" : ""}${v.toFixe
 const human = (s) => { const t = String(s).replace(/_/g, " "); return t.charAt(0).toUpperCase() + t.slice(1); };
 const fmtDay = (d) => (d ? new Date(`${d}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) : "–");
 const fmtInt = (n) => (n == null ? "–" : n.toLocaleString("en-US"));
+const profNames = (e) => (e.profiles || [e.profile]).map((p) => PROFILES[p] || esc(p)).join(", ");
 const clsOf = (e) => (e.classes.length > 1 ? "mixed" : e.classes[0] || "mixed");
 
 function setLabel(e) {
@@ -53,7 +54,7 @@ async function load() {
     e.hay = `${e.strategy} ${e.name} ${e.tag || ""} ${e.symbols.join(" ")}`.toLowerCase();
     e.isLong = e.signal.long.length > 0;
     state.byId.set(e.id, e);
-    if (e.variant_file) state.byFile.set(e.variant_file, e);
+    for (const f of e.variant_files || [e.variant_file]) if (f) state.byFile.set(f, e);
   }
   state.all = data.entries;
   state.best = data.best || {};
@@ -86,7 +87,7 @@ function frontier() {
 function filtered() {
   const q = state.q.trim().toLowerCase();
   let rows = state.all.filter((e) =>
-    (!state.profile || e.profile === state.profile) &&
+    (!state.profile || (e.profiles || [e.profile]).includes(state.profile)) &&
     (!state.cls || e.cls === state.cls) &&
     (!state.conf || !e.low_confidence) &&
     (!state.long || e.isLong) &&
@@ -202,7 +203,7 @@ function render() {
       return `<tr data-id="${e.id}" class="${state.sel && state.sel.id === e.id ? "sel" : ""}" tabindex="0" aria-label="${esc(e.name)}, ${esc(e.label)}">
         <td class="l rk${i < 3 && state.sort === "conservative_yearly_pct" && !state.asc ? " top" : ""}">${i + 1}</td>
         <td class="l"><div class="nm">${esc(e.name)}</div><div class="set">${esc(e.label)}${e.low_confidence ? ' · <span class="lc">low confidence</span>' : ""}</div></td>
-        <td class="l prof hide-md">${PROFILES[e.profile] || esc(e.profile)}</td>
+        <td class="l prof hide-md">${profNames(e)}</td>
         <td class="bar">${bar(e, i)}</td>
         <td class="fig up">${pct(e.conservative_yearly_pct)}</td>
         <td class="fig down hide-sm">${pct(e.worst_max_dd_pct)}</td>
@@ -246,7 +247,7 @@ function select(e, push = true) {
     : `<span class="chip">Flat, no open position</span>`;
   const period = e.oos_period ? `${e.oos_period[0]} to ${e.oos_period[1]}` : "–";
   $("#detail .detail-body").innerHTML = `
-    <div><p class="d-name">${esc(e.name)}</p><p class="d-set">${esc(e.label)} · ${PROFILES[e.profile] || esc(e.profile)}</p></div>
+    <div><p class="d-name">${esc(e.name)}</p><p class="d-set">${esc(e.label)} · ${profNames(e)}</p></div>
     ${e.low_confidence ? `<p class="warn">Low confidence: this symbol topped a screen whose ranking didn't hold up in-sample, so it may have been picked by luck. The strategy's broad basket is the safer read.</p>` : ""}
     <div class="d-figs">
       <div class="d-main"><div class="v up">${fig(pct(e.conservative_yearly_pct))}</div><div class="k">a year, worse period</div></div>

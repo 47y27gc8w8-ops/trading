@@ -243,6 +243,7 @@ h1.display { font-size: var(--fs-hero); }
 .feed.ok i { background: var(--up); }
 .feed.err i { background: var(--down); box-shadow: 0 0 0 3px var(--down-bg); }
 .feed.err { color: var(--fg); }
+.feed.warn i { background: var(--warn); }
 .feed .t { margin-left: auto; color: var(--faint); font-size: var(--fs-small); }
 
 .shell { margin-left: var(--side); min-width: 0; overflow-x: clip; }

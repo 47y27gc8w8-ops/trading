@@ -104,13 +104,21 @@ function setLive(ok) {
 }
 
 const FEED_NAMES = { binance: "Binance", yahoo: "Yahoo Finance", coingecko: "CoinGecko" };
+/* ok, warn or err for one quote source. CoinGecko only adds names, market caps and ranks and is polled
+   every 5 min, so one failed call while the last good answer is under an hour old is a warning. */
+const FEED_MAX_AGE = { coingecko: 3600 };
+function feedState(k, v, now = Date.now() / 1000) {
+  const fresh = v.last_ok && now - v.last_ok < (FEED_MAX_AGE[k] || 600);
+  if (!v.error) return fresh ? "ok" : "err";
+  return fresh && FEED_MAX_AGE[k] ? "warn" : "err";
+}
 function renderFeeds() {
   const box = $("#feeds"), src = state.feed?.sources;
   if (!box || !src) return;
   const now = Date.now() / 1000;
   box.innerHTML = `<h3>Quote feeds</h3>` + Object.entries(src).map(([k, v]) => {
-    const ok = !v.error && v.last_ok && now - v.last_ok < 600;
-    return `<div class="feed ${ok ? "ok" : "err"}" title="${esc(v.error || `${v.count ?? 0} quotes in ${v.ms ?? "?"} ms`)}"><i></i>${esc(FEED_NAMES[k] || k)}<span class="t num">${v.last_ok ? ago(v.last_ok) : "never"}</span></div>`;
+    const st = feedState(k, v, now);
+    return `<div class="feed ${st}" title="${esc(st === "warn" ? `Retrying after: ${v.error}` : v.error || `${v.count ?? 0} quotes in ${v.ms ?? "?"} ms`)}"><i></i>${esc(FEED_NAMES[k] || k)}<span class="t num">${v.last_ok ? ago(v.last_ok) : "never"}</span></div>`;
   }).join("");
 }
 
@@ -542,6 +550,11 @@ const assetView = {
     if (!state.assets.length) await loadOverview();
     const a = state.bySym[sym];
     if (!a) {
+      // short or lower-case names (#/asset/BTC, #/asset/spy) open the tracked symbol they stand for
+      const want = sym.toUpperCase();
+      const hits = state.assets.filter((x) => x.symbol.toUpperCase() === want || base(x.symbol).toUpperCase() === want);
+      const hit = hits.find((x) => x.symbol.toUpperCase() === want) || hits.find((x) => x.type === "crypto") || hits[0];
+      if (hit) { location.replace(`#/asset/${encodeURIComponent(hit.symbol)}`); return; }
       el.innerHTML = `<a class="back" href="#/">← Markets</a><div class="title-row"><div><p class="eyebrow"><span class="n">01</span><span class="dash"></span>Asset</p><h1>${esc(sym)}.</h1>
         <p class="lede">${state.loadError ? "The price feed is not answering." : "This symbol is not tracked. Add it in config/symbols.yaml."}</p></div></div>
         ${state.loadError ? `<div class="panel">${errorBlock("this asset")}</div>` : ""}`;
@@ -970,14 +983,15 @@ const dataView = {
     const yOk = yr && !yr.failed.length;
     const fd = h.feed || {}, srcs = Object.entries(fd.sources || {});
     const fresh = fd.generated && Date.now() / 1000 - fd.generated < 3 * (fd.poll_seconds || 30);
-    const srcOk = srcs.filter(([, v]) => !v.error && v.last_ok && Date.now() / 1000 - v.last_ok < 600);
+    const srcSt = Object.fromEntries(srcs.map(([k, v]) => [k, feedState(k, v)]));
+    const srcOk = srcs.filter(([k]) => srcSt[k] === "ok");
     const nQuotes = state.assets.filter((a) => a.fetched && Date.now() / 1000 - a.fetched < 120).length;
     /* the status sentence, each clause as a pill coloured by its state: ok, warn or error */
-    const srcErr = srcs.some(([, v]) => v.error);
+    const srcErr = srcs.some(([k]) => srcSt[k] === "err"), srcWarn = srcs.some(([k]) => srcSt[k] === "warn");
     const parts = [
       [feeds.length ? `<b>${live.length} of ${feeds.length}</b> live crypto feeds under 5 min behind${stale.length ? `; behind: ${stale.map((r) => esc(base(r.symbol))).join(", ")}` : ""}` : "No live feeds found", !feeds.length ? "neg" : stale.length ? "warn" : "pos"],
       [yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${yr.failed.length > 8 ? yr.failed.length + " symbols" : esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run", !yr ? "warn" : yOk ? "pos" : "neg"],
-      [fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k, v]) => `${esc(k)} ${v.error ? '<span class="down">error</span>' : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>', !fd.generated || !fresh || srcErr ? "neg" : "pos"],
+      [fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k]) => `${esc(k)} ${srcSt[k] === "err" ? '<span class="down">error</span>' : srcSt[k] === "warn" ? "retrying" : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>', !fd.generated || !fresh || srcErr ? "neg" : srcWarn ? "warn" : "pos"],
       [`store scanned ${ago(h.generated)}`, "neutral"],
     ];
     const lede = parts.map(([t, k], i) => `<span class="pill status ${k}"><span class="dot"></span><span>${t}${i === parts.length - 1 ? "." : ""}</span></span>`).join('<span class="sr"> · </span>');
