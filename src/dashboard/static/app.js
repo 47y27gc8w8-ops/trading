@@ -19,7 +19,7 @@ function pageHead(key, lede = "", ledeId = "", extra = "") {
 }
 /* a value already formatted, set as an Anton figure with its unit small in the accent: "+0.84%" -> +0.84 % */
 const figPct = (str) => str === "—" ? '<span class="fig muted">—</span>' : `<span class="fig">${esc(str.replace(/%$/, ""))}<small>%</small></span>`;
-const figUsd = (str) => { const m = /^(-?)\$(.*)$/.exec(str); return m ? `<span class="fig">${m[1]}<small class="pre">$</small>${esc(m[2])}</span>` : `<span class="fig">${esc(str)}</span>`; };
+const figUsd = (str) => { const m = /^([+-]?)\$(.*)$/.exec(str); return m ? `<span class="fig">${m[1]}<small class="pre">$</small>${esc(m[2])}</span>` : `<span class="fig">${esc(str)}</span>`; };
 const arrow = (v) => v == null || Math.abs(v) < 1e-9 ? "" : v > 0 ? '<i class="arw" aria-hidden="true">▲</i>' : '<i class="arw" aria-hidden="true">▼</i>';
 /* the price flash: compares with the previous poll; only changed prices light up */
 const flashCls = (sym, price) => { const prev = state.prevPrice[sym]; return prev != null && price != null && prev !== price ? (price > prev ? "flash-up" : "flash-down") : ""; };
@@ -801,19 +801,19 @@ const portfolioView = {
   async mount(el) {
     if (!state.assets.length) await loadOverview();
     el.innerHTML = `<div class="portfolio rise">
-      <div class="title-row"><div><h1>Paper portfolio</h1><p class="lede" id="pf-lede">Loading the account…</p></div></div>
+      ${pageHead("portfolio", "Loading the account…", "pf-lede")}
       <section class="panel kpis" id="pf-kpis" aria-label="Account totals"></section>
       <div class="side-layout">
         <div class="stack">
+          <section class="panel equity-panel"><div class="panel-head"><h2>Equity</h2><span class="sub">daily close, marked to market · USD</span></div><div id="pf-equity"></div></section>
           <section class="panel"><div class="panel-head"><h2>Positions</h2><span class="sub" id="pf-npos"></span></div><div id="pf-pos"></div></section>
-          <section class="panel"><div class="panel-head"><h2>Equity</h2><span class="sub">daily close, marked to market · USD</span></div><div id="pf-equity"></div></section>
           <section class="panel"><div class="panel-head"><h2>Trade history</h2><span class="sub" id="pf-ntr"></span></div><div id="pf-trades"></div></section>
           <section class="panel"><div class="panel-head"><h2>Account</h2></div>
             <div class="account-form">
               <label class="field" for="pf-start">Starting cash, USD</label>
               <div class="row"><input class="input" id="pf-start" type="number" inputmode="decimal" min="1" step="100"><button class="btn" id="pf-save">Save</button></div>
               <p>Changing it re-bases the return. Trades are kept.</p>
-              <button class="btn danger" id="pf-reset">Delete all trades and reset</button>
+              <div class="danger-zone"><button class="btn danger" id="pf-reset">Delete all trades and reset</button></div>
             </div>
           </section>
         </div>
@@ -822,6 +822,11 @@ const portfolioView = {
         </div>
       </div></div>`;
     renderTradeForm($("#pf-trade"), "", false);
+    el.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-to-trade]")) return;
+      $("#pf-trade").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      $("#tf-sym")?.focus({ preventScroll: true });
+    });
     $("#pf-save").addEventListener("click", () => this.settings(false));
     $("#pf-reset").addEventListener("click", () => {
       const n = portfolioCache?.trades.length || 0;
@@ -849,7 +854,7 @@ const portfolioView = {
     const box = $("#pf-equity");
     if (p.equity_curve.length < 2) {
       if (this.chart) { this.chart.remove(); this.chart = null; }
-      box.innerHTML = `<div class="empty-line">${p.trades.length ? "The equity line starts after the first full day with a position." : "Equity is drawn day by day once you place the first trade."} Today: <b class="num">${fmtUsd(p.equity)}</b></div>`;
+      box.innerHTML = `<div class="empty-line"><span class="ghost-type" aria-hidden="true">Equity</span>${p.trades.length ? "The equity line starts after the first full day with a position." : "Equity is drawn day by day once you place the first trade."} Today: <b class="num">${fmtUsd(p.equity)}</b></div>`;
       return;
     }
     if (!this.chart) {
@@ -877,11 +882,11 @@ const portfolioView = {
       ? `<b class="num ${tone(p.total_return)}">${fmtPct(p.total_return)}</b> on <span class="num">${fmtUsd(p.starting_cash)}</span> starting cash since ${fmtDate(Math.min(...p.trades.map((t) => t.time)))} · ${n} open position${n === 1 ? "" : "s"}`
       : `Starting cash <b class="num">${fmtUsd(p.starting_cash)}</b> · no trades yet. Prices are the stored market data; no broker, no real money.`;
     const k = [
-      ["Equity", fmtUsd(p.equity), `<span class="num ${tone(p.total_return)}">${fmtPct(p.total_return)}</span> since start`, "lead"],
-      ["Cash", fmtUsd(p.cash), `${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : "0.0"}% of equity`],
-      ["In positions", fmtUsd(p.positions_value), `${n} open`],
-      ["Unrealized P&amp;L", `<span class="${tone(p.unrealized_pnl, 0.005)}">${fmtSignedUsd(p.unrealized_pnl)}</span>`, "on open positions"],
-      ["Realized P&amp;L", `<span class="${tone(p.realized_pnl, 0.005)}">${fmtSignedUsd(p.realized_pnl)}</span>`, `after <span class="num">${fmtUsd(p.fees_paid)}</span> fees`],
+      ["Equity", figUsd(fmtUsd(p.equity)), `<span class="num ${tone(p.total_return)}">${arrow(p.total_return)}${fmtPct(p.total_return)}</span> since start`, "lead"],
+      ["Cash", figUsd(fmtUsd(p.cash)), `${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : "0.0"}% of equity`],
+      ["In positions", figUsd(fmtUsd(p.positions_value)), `${n} open`],
+      ["Unrealized P&amp;L", `<span class="${tone(p.unrealized_pnl, 0.005)}">${figUsd(fmtSignedUsd(p.unrealized_pnl))}</span>`, "on open positions"],
+      ["Realized P&amp;L", `<span class="${tone(p.realized_pnl, 0.005)}">${figUsd(fmtSignedUsd(p.realized_pnl))}</span>`, `after <span class="num">${fmtUsd(p.fees_paid)}</span> fees`],
     ];
     $("#pf-kpis").innerHTML = k.map(([a, b, c, lead]) => `<div class="kpi${lead ? " lead" : ""}"><div class="k">${a}</div><div class="v num">${b}</div><div class="s">${c}</div></div>`).join("");
     this.renderEquity(p);
@@ -898,10 +903,10 @@ const portfolioView = {
             <div class="sy"><span class="hide-sm">${esc(x.symbol)}</span><span class="m-sub num">${fmtQty(x.qty)} ${esc(base(x.symbol))} · avg $${fmtPrice(x.avg_cost)}</span></div></div></div></td>
           <td class="num hide-sm">${fmtQty(x.qty)}</td><td class="num hide-md">$${fmtPrice(x.avg_cost)}</td><td class="num hide-sm">$${fmtPrice(x.price)}</td>
           <td class="num">${fmtUsd(x.value)}</td>
-          <td class="num"><span class="${tone(x.pnl, 0.005)}">${fmtSignedUsd(x.pnl)}</span><div class="muted" style="font-size:12px">${fmtPct(x.pnl_pct)}</div></td>
+          <td class="num"><span class="${tone(x.pnl, 0.005)}">${arrow(x.pnl)}${fmtSignedUsd(x.pnl)}</span><div class="muted" style="font-size:12px">${fmtPct(x.pnl_pct)}</div></td>
           <td class="num hide-sm"><span class="swatch" style="background:${shade(i)}"></span>${(x.weight * 100).toFixed(1)}%</td></tr>`).join("")}</tbody></table></div>`;
     } else {
-      $("#pf-pos").innerHTML = `<div class="empty-line">No open positions. All <b class="num">${fmtUsd(p.cash)}</b> is in cash; buy something in <b>Paper trade</b>.</div>`;
+      $("#pf-pos").innerHTML = `<div class="empty-line"><span class="ghost-type" aria-hidden="true">Cash</span>No open positions. All <b class="num">${fmtUsd(p.cash)}</b> is in cash; buy something in <b>Paper trade</b>.<button class="btn ghost" data-to-trade>Paper trade <span class="arr">→</span></button></div>`;
     }
 
     $("#pf-ntr").textContent = nt ? `${nt} trade${nt === 1 ? "" : "s"} · newest first` : "";
@@ -910,12 +915,12 @@ const portfolioView = {
         const cash = t.side === "buy" ? -(t.qty * t.price + t.fee) : t.qty * t.price - t.fee;
         const desc = `${t.side} of ${fmtQty(t.qty)} ${base(t.symbol)} on ${fmtDateTime(t.time)}`;
         return `<tr><td class="l muted num">${fmtDateTime(t.time)}</td><td class="l">${esc(base(t.symbol))}</td>
-        <td class="l">${t.side === "buy" ? "Buy" : "Sell"}</td>
+        <td class="l"><span class="pill ${t.side === "buy" ? "pos" : "neg"}">${t.side === "buy" ? "Buy" : "Sell"}</span></td>
         <td class="num">${fmtQty(t.qty)}</td><td class="num">$${fmtPrice(t.price)}</td><td class="num hide-sm">${fmtUsd(t.fee)}</td>
         <td class="num">${fmtSignedUsd(cash)}</td>
         <td><button class="btn icon" data-del="${esc(t.id)}" data-desc="${esc(desc)}" aria-label="Delete ${esc(desc)}" title="Delete trade"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></td></tr>`;
       }).join("")}</tbody></table></div>`
-      : `<div class="empty-line">No trades yet. Each paper buy or sell is listed here and can be deleted.</div>`;
+      : `<div class="empty-line"><span class="ghost-type" aria-hidden="true">No trades</span>No trades yet. Each paper buy or sell is listed here and can be deleted.<button class="btn ghost" data-to-trade>Paper trade <span class="arr">→</span></button></div>`;
     updateTradeEstimate($("#pf-trade"));
   },
   unmount() { if (this.chart) { this.chart.remove(); this.chart = null; } },
