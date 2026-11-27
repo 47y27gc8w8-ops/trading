@@ -1,0 +1,233 @@
+{
+  "coins": [
+    "SOLUSDT",
+    "VETUSDT",
+    "ADAUSDT",
+    "HBARUSDT",
+    "BTCUSDT",
+    "DOGEUSDT",
+    "BNBUSDT",
+    "AVAXUSDT",
+    "SHIBUSDT",
+    "DOTUSDT",
+    "NEARUSDT",
+    "UNIUSDT",
+    "ALGOUSDT",
+    "RAYUSDT",
+    "ETHUSDT",
+    "ETCUSDT",
+    "TRXUSDT",
+    "NEXOUSDT",
+    "LINKUSDT",
+    "XRPUSDT",
+    "STXUSDT",
+    "XLMUSDT",
+    "JSTUSDT",
+    "DASHUSDT",
+    "AAVEUSDT",
+    "QNTUSDT",
+    "FILUSDT",
+    "ZECUSDT",
+    "CAKEUSDT",
+    "BCHUSDT",
+    "INJUSDT",
+    "ATOMUSDT",
+    "LTCUSDT",
+    "APTUSDT",
+    "ICPUSDT"
+  ],
+  "candidates": [
+    {
+      "params": {
+        "entry_n": 20,
+        "exit_n": 5,
+        "trend_sma": 50,
+        "trailing_stop_pct": 0.0
+      },
+      "is": {
+        "sharpe": 1.346,
+        "sharpe_h1": 1.574,
+        "sharpe_h2": 1.166,
+        "yearly_return_pct": 44.36,
+        "max_dd_pct": -31.95,
+        "profit_factor": 2.739,
+        "n_trades": 931,
+        "buy_hold_return_pct": 1141.78
+      },
+      "oos": {
+        "sharpe": 0.442,
+        "return_pct": 14.6,
+        "yearly_return_pct": 7.48,
+        "max_dd_pct": -20.44,
+        "profit_factor": 1.239,
+        "n_trades": 353,
+        "buy_hold_return_pct": -11.21
+      },
+      "live_since_2018": {
+        "sharpe": 1.111,
+        "yearly_return_pct": 32.49,
+        "max_dd_pct": -31.95
+      }
+    },
+    {
+      "params": {
+        "entry_n": 25,
+        "exit_n": 5,
+        "trend_sma": 0,
+        "trailing_stop_pct": 0.0
+      },
+      "is": {
+        "sharpe": 1.352,
+        "sharpe_h1": 1.531,
+        "sharpe_h2": 1.209,
+        "yearly_return_pct": 43.3,
+        "max_dd_pct": -27.28,
+        "profit_factor": 2.86,
+        "n_trades": 850,
+        "buy_hold_return_pct": 1141.78
+      },
+      "oos": {
+        "sharpe": 0.366,
+        "return_pct": 10.67,
+        "yearly_return_pct": 5.51,
+        "max_dd_pct": -21.78,
+        "profit_factor": 1.182,
+        "n_trades": 316,
+        "buy_hold_return_pct": -11.21
+      },
+      "live_since_2018": {
+        "sharpe": 1.118,
+        "yearly_return_pct": 31.69,
+        "max_dd_pct": -30.02
+      }
+    },
+    {
+      "params": {
+        "entry_n": 25,
+        "exit_n": 5,
+        "trend_sma": 50,
+        "trailing_stop_pct": 0.0
+      },
+      "is": {
+        "sharpe": 1.353,
+        "sharpe_h1": 1.513,
+        "sharpe_h2": 1.232,
+        "yearly_return_pct": 42.4,
+        "max_dd_pct": -25.67,
+        "profit_factor": 2.87,
+        "n_trades": 841,
+        "buy_hold_return_pct": 1141.78
+      },
+      "oos": {
+        "sharpe": 0.357,
+        "return_pct": 10.18,
+        "yearly_return_pct": 5.26,
+        "max_dd_pct": -20.9,
+        "profit_factor": 1.174,
+        "n_trades": 311,
+        "buy_hold_return_pct": -11.21
+      },
+      "live_since_2018": {
+        "sharpe": 1.115,
+        "yearly_return_pct": 30.95,
+        "max_dd_pct": -30.6
+      }
+    },
+    {
+      "params": {
+        "entry_n": 30,
+        "exit_n": 5,
+        "trend_sma": 0,
+        "trailing_stop_pct": 0.0
+      },
+      "is": {
+        "sharpe": 1.366,
+        "sharpe_h1": 1.539,
+        "sharpe_h2": 1.234,
+        "yearly_return_pct": 42.48,
+        "max_dd_pct": -25.47,
+        "profit_factor": 3.025,
+        "n_trades": 789,
+        "buy_hold_return_pct": 1141.78
+      },
+      "oos": {
+        "sharpe": 0.568,
+        "return_pct": 20.24,
+        "yearly_return_pct": 10.25,
+        "max_dd_pct": -18.48,
+        "profit_factor": 1.382,
+        "n_trades": 272,
+        "buy_hold_return_pct": -11.21
+      },
+      "live_since_2018": {
+        "sharpe": 1.129,
+        "yearly_return_pct": 30.94,
+        "max_dd_pct": -30.46
+      }
+    },
+    {
+      "params": {
+        "entry_n": 30,
+        "exit_n": 5,
+        "trend_sma": 50,
+        "trailing_stop_pct": 0.0
+      },
+      "is": {
+        "sharpe": 1.36,
+        "sharpe_h1": 1.528,
+        "sharpe_h2": 1.23,
+        "yearly_return_pct": 41.9,
+        "max_dd_pct": -24.57,
+        "profit_factor": 3.013,
+        "n_trades": 787,
+        "buy_hold_return_pct": 1141.78
+      },
+      "oos": {
+        "sharpe": 0.568,
+        "return_pct": 20.24,
+        "yearly_return_pct": 10.25,
+        "max_dd_pct": -18.48,
+        "profit_factor": 1.382,
+        "n_trades": 272,
+        "buy_hold_return_pct": -11.21
+      },
+      "live_since_2018": {
+        "sharpe": 1.124,
+        "yearly_return_pct": 30.55,
+        "max_dd_pct": -30.38
+      }
+    },
+    {
+      "params": {
+        "entry_n": 20,
+        "exit_n": 10,
+        "trend_sma": 0,
+        "trailing_stop_pct": 0.0
+      },
+      "is": {
+        "sharpe": 1.199,
+        "sharpe_h1": 1.608,
+        "sharpe_h2": 0.848,
+        "yearly_return_pct": 46.13,
+        "max_dd_pct": -41.92,
+        "profit_factor": 2.178,
+        "n_trades": 786,
+        "buy_hold_return_pct": 1141.78
+      },
+      "oos": {
+        "sharpe": 0.678,
+        "return_pct": 37.85,
+        "yearly_return_pct": 18.52,
+        "max_dd_pct": -27.67,
+        "profit_factor": 1.621,
+        "n_trades": 310,
+        "buy_hold_return_pct": -11.21
+      },
+      "live_since_2018": {
+        "sharpe": 0.971,
+        "yearly_return_pct": 32.55,
+        "max_dd_pct": -48.13
+      }
+    }
+  ]
+}
