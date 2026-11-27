@@ -3,6 +3,7 @@
    frontier glowing in the accent, pill filters, switch toggles. Green is return, red is drawdown. */
 
 .panel { margin-bottom: var(--gap); }
+.topbar { padding-right: calc(var(--pad) + var(--sar)); }
 .updated { margin: 0 0 0 auto; color: var(--faint); font-size: 13px; white-space: nowrap; }
 .panel-head.wrap { flex-wrap: wrap; align-items: center; }
 .count { font: 400 22px/1 var(--display); color: var(--accent); margin-left: 6px; }
@@ -100,7 +101,7 @@ td { text-align: right; height: 54px; padding: 6px 11px; border-top: 1px solid v
 tbody tr { cursor: pointer; }
 tbody tr td { transition: background .2s; }
 tbody tr:hover td { background: var(--night-3); }
-tbody tr.sel td { background: color-mix(in srgb, var(--accent) 14%, var(--night-2)); }
+tbody tr.sel td { background: var(--night-3); }
 tbody tr.sel td:first-child, tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 td.rk { color: var(--faint); width: 48px; font-weight: 600; }
 td.rk.top { font: 400 24px/1 var(--display); color: var(--accent); }
@@ -160,7 +161,7 @@ th.bar-h { text-align: center; }
   .panel-head .sub { text-align: left; }
   .panel-head.wrap { align-items: stretch; }
   .controls { width: 100%; }
-  .tabs { display: flex; width: 100%; }
+  .tabs { display: flex; flex-wrap: wrap; width: 100%; border-radius: var(--radius); }
   .tabs button { flex: 1 0 auto; }
   th.bar-h { font-size: 0; }
   th.bar-h button::before { content: "DD · return"; font-size: 11px; }
