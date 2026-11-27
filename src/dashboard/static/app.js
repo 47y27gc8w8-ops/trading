@@ -182,19 +182,30 @@ function makeChart(el, opts = {}) {
     timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 4 },
     crosshair: {
       mode: LC.CrosshairMode.Normal,
-      vertLine: { color: "#555", width: 1, style: LC.LineStyle.Solid, labelBackgroundColor: "#2a2a2a" },
-      horzLine: { color: "#555", width: 1, style: LC.LineStyle.Dashed, labelBackgroundColor: "#2a2a2a" },
+      vertLine: { color: css("--control"), width: 1, style: LC.LineStyle.Solid, labelBackgroundColor: css("--night-4") },
+      horzLine: { color: css("--control"), width: 1, style: LC.LineStyle.Dashed, labelBackgroundColor: css("--night-4") },
     },
     handleScroll: { vertTouchDrag: false },
     ...opts,
   });
 }
 const priceFormat = (p) => { const prec = Math.abs(p || 1) >= 1000 ? 0 : decimals(p || 1); return { type: "price", precision: prec, minMove: Math.pow(10, -prec) }; };
-/* the watched line: the one data hue, with a short fade under it (the only fill on the screen) */
+/* the accent as the theme switcher last set it (the CSS value may be mid-fade), and an rgba of it */
+const accent = () => (window.ARCO ? window.ARCO.accent() : css("--accent"));
+const rgba = (hex, a) => { const n = parseInt(hex.replace("#", ""), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const lineColors = (hex = accent()) => ({ lineColor: hex, topColor: rgba(hex, .22), bottomColor: rgba(hex, 0), crosshairMarkerBackgroundColor: hex });
+/* the watched line: the accent, with a short fade under it */
 const lineSeries = (chart, p) => chart.addSeries(LC.AreaSeries, {
-  lineColor: css("--accent"), topColor: "rgba(245,165,36,.16)", bottomColor: "rgba(245,165,36,0)", lineWidth: 2,
-  priceLineVisible: false, crosshairMarkerRadius: 4, crosshairMarkerBorderColor: css("--surface"),
-  crosshairMarkerBackgroundColor: css("--accent"), priceFormat: priceFormat(p),
+  ...lineColors(), lineWidth: 2,
+  priceLineVisible: false, crosshairMarkerRadius: 4, crosshairMarkerBorderColor: css("--night-2"),
+  priceFormat: priceFormat(p),
+});
+/* a new accent recolours the live charts in place: no reload, no lost zoom */
+window.addEventListener("accentchange", (e) => {
+  const hex = e.detail.hex;
+  overviewView.series?.applyOptions(lineColors(hex));
+  assetView.candles?.applyOptions({ priceLineColor: hex });
+  portfolioView.series?.applyOptions({ color: hex });
 });
 
 /* ============================================================ OVERVIEW === */
@@ -564,9 +575,9 @@ const assetView = {
     const up = css("--positive"), down = css("--negative");
     this.candles = this.chart.addSeries(LC.CandlestickSeries, {
       upColor: up, downColor: down, borderVisible: false, wickUpColor: up, wickDownColor: down,
-      priceLineColor: css("--accent"), priceFormat: priceFormat(this.a.price),
+      priceLineColor: accent(), priceFormat: priceFormat(this.a.price),
     });
-    this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(138,140,146,.28)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
+    this.volume = this.chart.addSeries(LC.HistogramSeries, { color: "rgba(236,244,207,.16)", priceFormat: { type: "volume" }, priceScaleId: "vol", lastValueVisible: false, priceLineVisible: false });
     this.chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.84, bottom: 0 } });
     this.candles.priceScale().applyOptions({ scaleMargins: { top: 0.06, bottom: 0.2 } });
     this.chart.subscribeCrosshairMove((p) => this.legend(p));
@@ -752,7 +763,7 @@ async function submitTrade(el) {
 /* =========================================================== PORTFOLIO === */
 /* allocation: one hue in steps (largest position darkest), cash in neutral grey */
 const SHADES = [1, 0.74, 0.56, 0.42, 0.32, 0.24];
-const shade = (i) => `rgba(245,165,36,${SHADES[Math.min(i, SHADES.length - 1)]})`;
+const shade = (i) => `color-mix(in srgb, var(--accent) ${Math.round(SHADES[Math.min(i, SHADES.length - 1)] * 100)}%, transparent)`;
 
 const portfolioView = {
   chart: null,
@@ -813,8 +824,8 @@ const portfolioView = {
     if (!this.chart) {
       box.innerHTML = `<div class="equity-wrap" id="pf-chart"></div>`;
       this.chart = makeChart($("#pf-chart"), { timeScale: { borderColor: css("--control"), timeVisible: false } });
-      this.series = this.chart.addSeries(LC.LineSeries, { color: css("--accent"), lineWidth: 2, priceLineVisible: false, priceFormat: { type: "price", precision: 2, minMove: 0.01 } });
-      this.series.createPriceLine({ price: p.starting_cash, color: "#666", lineWidth: 1, lineStyle: LC.LineStyle.Dashed, axisLabelVisible: false, title: "start" });
+      this.series = this.chart.addSeries(LC.LineSeries, { color: accent(), lineWidth: 2, priceLineVisible: false, priceFormat: { type: "price", precision: 2, minMove: 0.01 } });
+      this.series.createPriceLine({ price: p.starting_cash, color: css("--faint"), lineWidth: 1, lineStyle: LC.LineStyle.Dashed, axisLabelVisible: false, title: "start" });
     }
     this.series.setData(p.equity_curve);
     this.chart.timeScale().fitContent();
@@ -847,9 +858,9 @@ const portfolioView = {
     $("#pf-npos").textContent = n ? `${n} open · cash ${p.equity ? ((p.cash / p.equity) * 100).toFixed(1) : 0}%` : "";
     if (n) {
       const pos = [...p.positions].sort((x, y) => y.value - x.value);
-      const segs = [...pos.map((x, i) => [x.weight, shade(i)]), [p.equity ? p.cash / p.equity : 1, "#444"]];
+      const segs = [...pos.map((x, i) => [x.weight, shade(i)]), [p.equity ? p.cash / p.equity : 1, "var(--night-4)"]];
       $("#pf-pos").innerHTML = `<div class="alloc" aria-hidden="true">${segs.filter(([w]) => w > 0).map(([w, c]) => `<span style="flex:${w} 1 0;background:${c}"></span>`).join("")}</div>
-        <div class="alloc-cap"><span>Allocation by value</span><span><span class="swatch" style="background:#444"></span>Cash</span></div>
+        <div class="alloc-cap"><span>Allocation by value</span><span><span class="swatch" style="background:var(--night-4)"></span>Cash</span></div>
         <div class="table-wrap"><table><thead><tr><th class="l">Asset</th><th class="hide-sm">Quantity</th><th class="hide-md">Avg cost</th><th class="hide-sm">Price</th><th>Value</th><th>P&amp;L</th><th class="hide-sm">Weight</th></tr></thead><tbody>
         ${pos.map((x, i) => `<tr class="click" data-sym="${esc(x.symbol)}" tabindex="0">
           <td class="l"><div class="asset-cell">${icon(x.symbol)}<div style="min-width:0"><div class="nm">${esc(x.name)}</div>

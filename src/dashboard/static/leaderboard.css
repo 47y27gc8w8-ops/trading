@@ -3,102 +3,11 @@
    amber marks the frontier and the selection, green is return, red is drawdown.
    Grid (1440 wide): sidebar 224 + canvas 1216, padding 29 + 29 → 1158. Lead row 1fr + 14 + 380. */
 
-@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url(/static/vendor/fonts/inter-latin-400-normal.woff2) format("woff2"); }
-@font-face { font-family: "Inter"; font-weight: 500; font-display: swap; src: url(/static/vendor/fonts/inter-latin-500-normal.woff2) format("woff2"); }
-@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url(/static/vendor/fonts/inter-latin-600-normal.woff2) format("woff2"); }
-
-:root {
-  color-scheme: dark;
-  --ground: #000000;
-  --surface: #111111;
-  --raised: #1c1c1c;
-  --active: #2a2a2a;
-  --border: #1a1a1a;
-  --rule: #1f1f1f;
-  --control: #444444;
-  --text: #ffffff;
-  --muted: #b4b4b4;
-  --faint: #949494;
-  --nav: #bbbbbb;
-  --accent: #f5a524;
-  --positive: #3fc07a;
-  --negative: #f06b82;
-  --pill-warn-bg: #2b2414; --pill-warn: #e5a93b;
-
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --fs-title: 22px; --fs-section: 16px; --fs-kpi: 22px; --fs-lead: 34px; --fs-body: 14px; --fs-small: 12px;
-  --radius: 20px; --radius-in: 12px;
-  --gap: 14px; --pad: 29px; --card-pad: 22px; --ctl: 36px; --row: 52px;
-  --side: 224px; --top: 64px;
-  --ease: cubic-bezier(.2, .7, .2, 1);
-  --sab: env(safe-area-inset-bottom, 0px);
-}
-
-* { box-sizing: border-box; }
-html, body { margin: 0; background: var(--ground); color: var(--text); }
-body { font: 400 var(--fs-body)/1.5 var(--font); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01"; }
-a { color: inherit; text-decoration: none; }
-button { font: inherit; color: inherit; }
-::selection { background: var(--accent); color: #000; }
-:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 6px; }
-.num, td, .kpi .v { font-variant-numeric: tabular-nums; }
-.up { color: var(--positive); }
-.down { color: var(--negative); }
-.muted { color: var(--faint); }
-
-/* ================================================================= shell === */
-.rail {
-  position: fixed; inset: 0 auto 0 0; z-index: 30; width: var(--side);
-  display: flex; flex-direction: column; background: var(--ground); border-right: 1px solid var(--border); padding: 0 12px 20px;
-}
-.brand { display: flex; align-items: center; gap: 10px; height: var(--top); padding: 0 10px; flex: none; }
-.mark { display: block; width: 28px; height: 28px; flex: none; }
-.brand b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; }
-.brand small { display: block; font-size: var(--fs-small); color: var(--faint); line-height: 1.3; }
-.nav-list { display: grid; gap: 2px; margin-top: 18px; }
-.rail a.nav {
-  display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 10px;
-  color: var(--nav); font-weight: 500; transition: color .15s, background .15s;
-}
-.rail a.nav svg { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.rail a.nav:hover { color: var(--text); background: var(--surface); }
-.rail a.nav.active { color: var(--text); background: var(--surface); }
-.rail-note { margin: auto 10px 0; color: var(--faint); font-size: var(--fs-small); }
-
-.shell { margin-left: var(--side); min-width: 0; }
-.topbar {
-  position: sticky; top: 0; z-index: 20; height: var(--top); display: flex; align-items: center; gap: 20px;
-  padding: 0 var(--pad); background: var(--ground); border-bottom: 1px solid var(--border);
-}
-.wordmark { display: none; }
-.search { position: relative; flex: 1; max-width: 520px; }
-.search input {
-  width: 100%; height: var(--ctl); padding: 0 40px 0 38px; background: var(--surface); color: var(--text);
-  border: 1px solid transparent; border-radius: 999px; outline: none; font: inherit; transition: border-color .15s, background .15s;
-}
-.search input::placeholder { color: var(--faint); }
-.search input:hover { background: var(--raised); }
-.search input:focus { border-color: var(--control); background: var(--surface); }
-.search input::-webkit-search-cancel-button { display: none; }
-.search-icon { position: absolute; left: 14px; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); fill: none; stroke: var(--faint); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
-.search kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font: 12px var(--font); color: var(--faint); background: var(--raised); border-radius: 6px; padding: 1px 7px; }
+/* shell: tokens.css */
+.panel { margin-bottom: var(--gap); }
 .updated { margin: 0 0 0 auto; color: var(--faint); font-size: 13px; white-space: nowrap; }
-
-main { max-width: 1520px; padding: 26px var(--pad) 40px; }
-.credits { max-width: 1520px; padding: 0 var(--pad) 32px; color: var(--faint); font-size: var(--fs-small); }
-
-.title-row { margin-bottom: 20px; }
-h1 { font-size: var(--fs-title); line-height: 1.2; font-weight: 600; letter-spacing: -.02em; margin: 0; }
-h2 { font-size: var(--fs-section); font-weight: 600; margin: 0; letter-spacing: -.01em; }
-.lede { margin: 6px 0 0; color: var(--muted); font-size: 15px; max-width: 96ch; line-height: 1.55; }
-.lede b { color: var(--text); font-weight: 500; }
-
-.panel { background: var(--surface); border-radius: var(--radius); min-width: 0; margin-bottom: var(--gap); }
-.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 16px var(--card-pad) 8px; }
 .panel-head.wrap { flex-wrap: wrap; align-items: center; }
-.panel-head .sub { margin: 0; color: var(--faint); font-size: var(--fs-small); text-align: right; }
 .count { color: var(--faint); font-weight: 400; margin-left: 4px; }
-.note { font-size: var(--fs-small); color: var(--faint); padding: 14px var(--card-pad) 18px; }
 
 /* ================================================================= KPIs === */
 /* type, not tiles: one band of figures, the leader set larger */
