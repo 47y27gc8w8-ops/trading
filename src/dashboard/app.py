@@ -1,12 +1,13 @@
 """Local dashboard on :3000 — market overview, search, charts, paper portfolio, data health.
 
 Reads the Parquet store directly with DuckDB (read-only); the only file it writes
-is data/portfolio.json (the paper portfolio). Run: uvicorn src.dashboard.app:app --port 3000
+is data/portfolio.json (the paper portfolio). /brokers reads the paper bots' SQLite store. Run: uvicorn src.dashboard.app:app --port 3000
 """
 from __future__ import annotations
 
 import glob
 import json
+import sqlite3
 import threading
 import time
 import uuid
@@ -617,6 +618,140 @@ def api_leaderboard():
     return _lb_cache["data"]
 
 
+# ----------------------------------------------------------------- brokers ---
+# Paper-trading bots (src/brokers) write data/brokers/brokers.db; this side only reads it.
+
+BROKERS_DB = DATA / "brokers" / "brokers.db"
+BROKER_STALE_S = 300   # no heartbeat for 5 minutes = the bot is down
+
+
+def _bdb() -> sqlite3.Connection:
+    if not BROKERS_DB.exists():
+        raise HTTPException(404, "no broker database yet (data/brokers/brokers.db): start the bots")
+    con = sqlite3.connect(f"file:{BROKERS_DB}?mode=ro", uri=True, timeout=10)
+    con.row_factory = sqlite3.Row
+    return con
+
+
+@app.get("/api/brokers")
+def api_brokers():
+    con = _bdb()
+    try:
+        now = datetime.now(timezone.utc)
+        day_ago = (now - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        bots = []
+        for b in con.execute("SELECT b.*, s.cash, s.status, s.message, s.fx_usdchf, s.heartbeat, s.started_at, s.max_dd"
+                             " FROM bots b LEFT JOIN state s ON s.bot_id = b.id ORDER BY b.rowid"):
+            bid, start = b["id"], b["start_balance"]
+            last = con.execute("SELECT equity FROM equity WHERE bot_id=? ORDER BY ts DESC LIMIT 1", (bid,)).fetchone()
+            prev = con.execute("SELECT equity FROM equity WHERE bot_id=? AND ts<=? ORDER BY ts DESC LIMIT 1", (bid, day_ago)).fetchone()
+            eq = last["equity"] if last else start
+            prev_eq = prev["equity"] if prev else start
+            mdd = b["max_dd"] or 0.0   # maintained by the bot on every equity row
+            lt = con.execute("SELECT ts, symbol, side, notional, pnl, reason FROM trades WHERE bot_id=? ORDER BY id DESC LIMIT 1",
+                             (bid,)).fetchone()
+            fx = b["fx_usdchf"] or 0
+            pos = [{"symbol": p["symbol"], "qty": p["qty"], "value": p["qty"] * (p["last_price_usd"] or p["avg_price_usd"]) * fx,
+                    "pnl": p["qty"] * (p["last_price_usd"] or p["avg_price_usd"]) * fx - p["cost"], "since": p["opened_at"]}
+                   for p in con.execute("SELECT * FROM positions WHERE bot_id=? ORDER BY symbol", (bid,))]
+            hb_age = (now - datetime.strptime(b["heartbeat"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)).total_seconds() \
+                if b["heartbeat"] else None
+            status = b["status"] or "never ran"
+            if hb_age is not None and hb_age > BROKER_STALE_S and status != "stopped":
+                status = "down"
+            bots.append({
+                "id": bid, "strategy": b["strategy"], "profile": b["profile"], "asset_class": b["asset_class"],
+                "timeframe": b["timeframe"], "symbols": json.loads(b["symbols"] or "[]"), "params": json.loads(b["params"] or "{}"),
+                "backtest": json.loads(b["backtest"] or "{}"), "start_balance": start,
+                "status": status, "message": b["message"], "heartbeat": b["heartbeat"], "heartbeat_age_s": hb_age,
+                "started_at": b["started_at"], "equity": eq, "cash": b["cash"], "fx_usdchf": b["fx_usdchf"],
+                "pnl_day": eq - prev_eq, "pnl_day_pct": (eq / prev_eq - 1) * 100 if prev_eq else 0.0,
+                "pnl_total": eq - start, "pnl_total_pct": (eq / start - 1) * 100,
+                "max_dd_pct": mdd * 100, "positions": pos,
+                "trades": con.execute("SELECT count(*) FROM trades WHERE bot_id=?", (bid,)).fetchone()[0],
+                "errors_24h": con.execute("SELECT count(*) FROM events WHERE bot_id=? AND level='error' AND ts>?",
+                                          (bid, day_ago)).fetchone()[0],
+                "last_trade": dict(lt) if lt else None,
+            })
+        return {"generated": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "bots": bots}
+    finally:
+        con.close()
+
+
+@app.get("/api/brokers/equity")
+def api_brokers_equity(range_: str = Query("all", alias="range", pattern="^(1d|1w|1m|all)$"), points: int = 400):
+    """Every bot's equity curve, downsampled to about `points` buckets (last value per bucket), cached 60 s."""
+    return cached(f"brokers-equity-{range_}-{points}", 60, lambda: _brokers_equity(range_, points))
+
+
+def _brokers_equity(range_: str, points: int):
+    con = _bdb()
+    try:
+        since = {"1d": timedelta(days=1), "1w": timedelta(weeks=1), "1m": timedelta(days=31)}.get(range_)
+        lo = (datetime.now(timezone.utc) - since).strftime("%Y-%m-%dT%H:%M:%SZ") if since else "0"
+        out = {}
+        for (bid,) in con.execute("SELECT id FROM bots ORDER BY rowid"):
+            first = con.execute("SELECT min(ts), max(ts) FROM equity WHERE bot_id=? AND ts>=?", (bid, lo)).fetchone()
+            if not first[0]:
+                out[bid] = []
+                continue
+            t0 = datetime.strptime(first[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()
+            t1 = datetime.strptime(first[1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()
+            bucket = max(60, int((t1 - t0) / max(10, min(points, 2000))) + 1)
+            rows = con.execute(
+                "SELECT CAST(strftime('%s', ts) AS INTEGER) / ? AS b, max(ts) AS ts, equity FROM equity"
+                " WHERE bot_id=? AND ts>=? GROUP BY b ORDER BY b", (bucket, bid, lo)).fetchall()
+            out[bid] = [[int(datetime.strptime(r["ts"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()),
+                         round(r["equity"], 2)] for r in rows]
+        return {"range": range_, "curves": out}
+    finally:
+        con.close()
+
+
+@app.get("/api/brokers/trades")
+def api_brokers_trades(bot: str | None = None, limit: int = Query(50, le=500)):
+    con = _bdb()
+    try:
+        sql = "SELECT * FROM trades" + (" WHERE bot_id=?" if bot else "") + " ORDER BY id DESC LIMIT ?"
+        return {"trades": [dict(r) for r in con.execute(sql, ((bot,) if bot else ()) + (limit,))]}
+    finally:
+        con.close()
+
+
+try:
+    import psutil
+    psutil.cpu_percent(interval=None)   # prime: the first call has no reference point
+except ImportError:  # image built before psutil was added to requirements.txt
+    psutil = None
+
+
+@app.get("/api/system")
+def api_system():
+    """Host CPU, RAM and disk. /proc is not namespaced for these, so the container sees the host;
+    disk is the volume holding data/ (the root LV)."""
+    if psutil is None:
+        raise HTTPException(503, "psutil missing: rebuild the image (docker compose build dashboard)")
+    vm, sw = psutil.virtual_memory(), psutil.swap_memory()
+    du = psutil.disk_usage(str(DATA))
+    temps = {}
+    try:
+        for name, entries in (psutil.sensors_temperatures() or {}).items():
+            for t in entries:
+                if t.current:
+                    temps[name] = max(temps.get(name, 0), t.current)
+    except Exception:  # noqa: BLE001 - sensors are optional
+        pass
+    return {
+        "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "cpu_pct": psutil.cpu_percent(interval=None), "cpu_count": psutil.cpu_count(),
+        "per_cpu": psutil.cpu_percent(interval=None, percpu=True), "load": list(psutil.getloadavg()),
+        "mem_total": vm.total, "mem_used": vm.total - vm.available, "mem_pct": vm.percent,
+        "swap_total": sw.total, "swap_used": sw.used,
+        "disk_total": du.total, "disk_used": du.used, "disk_pct": du.percent,
+        "uptime_s": time.time() - psutil.boot_time(), "temp_c": max(temps.values()) if temps else None,
+    }
+
+
 # ------------------------------------------------------------------ static ---
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -635,3 +770,8 @@ def index():
 @app.get("/leaderboard")
 def leaderboard_page():
     return FileResponse(STATIC / "leaderboard.html")
+
+
+@app.get("/brokers")
+def brokers_page():
+    return FileResponse(STATIC / "brokers.html")

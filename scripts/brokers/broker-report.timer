@@ -1,0 +1,11 @@
+# When the daily report goes out. Change OnCalendar (e.g. 07:30:00) then:
+#   sudo systemctl daemon-reload && sudo systemctl restart broker-report.timer
+[Unit]
+Description=Paper brokers daily report at 20:00 Europe/Zurich
+
+[Timer]
+OnCalendar=*-*-* 20:00:00 Europe/Zurich
+Persistent=true
+
+[Install]
+WantedBy=timers.target

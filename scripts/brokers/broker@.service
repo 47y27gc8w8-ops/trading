@@ -1,0 +1,29 @@
+# Paper-trading bot <instance> (ids in config/brokers.yaml). PAPER ONLY: simulated fills, no exchange keys.
+# Runs src/brokers/run.py inside the project's Docker image; Restart=always survives crashes and reboots.
+[Unit]
+Description=Paper broker bot %i
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+StartLimitIntervalSec=0
+
+[Service]
+User=luca
+Group=docker
+Restart=always
+RestartSec=15
+TimeoutStopSec=45
+ExecStartPre=-/usr/bin/docker rm -f broker-%i
+ExecStart=/usr/bin/docker run --rm --name broker-%i --user 1000:1000 \
+  -e TZ=UTC -e HOME=/tmp --memory 768m \
+  --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 \
+  -v /home/luca/trading/data:/app/data \
+  -v /home/luca/trading/logs:/app/logs \
+  -v /home/luca/trading/config:/app/config:ro \
+  -v /home/luca/trading/src:/app/src:ro \
+  -v /home/luca/trading/strategies:/app/strategies:ro \
+  -w /app trading-pipeline:latest python -m src.brokers.run --bot %i
+ExecStop=/usr/bin/docker stop -t 30 broker-%i
+
+[Install]
+WantedBy=multi-user.target
