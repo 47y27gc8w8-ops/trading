@@ -9,7 +9,7 @@ Source: `original.md` (library spec), EXECUTION.md "Pair execution" / INDICATORS
 ## Rule
 - **Spec buy trigger:** At each six-month boundary form all pairs using preceding 252 daily total-return prices normalized to 1 at formation start; choose lowest summed squared distance. In next six months, buy A/short B equal dollars if frozen-formation standardized normalized spread < -2.
 - **Spec exit:** Signal/rebalance exit: Frozen-formation standardized spread >=0 or <=-4; also exit at end of six-month trading period.
-- **Formal:** At each six-month boundary t (last bar of June / December): on t-f..t-1, normalize every candidate's total-return close to 1 at the formation start and pick the pair (alphabetically first ticker = A) with the lowest summed squared distance; freeze bases and the spread's mean/std. During t+1 .. next boundary: z = (A/baseA - B/baseB - mean) / std; entry z < -z, exit z >= 0 or z <= -4; forced exit at the next boundary (end of the trading period). Equal dollars.
+- **Formal:** At each six-month boundary t (last bar of June / December): on t-f+1..t (data completed before the first January/July open, INDICATORS.md six-month windows), normalize every candidate's total-return close to 1 at the formation start and pick the pair (alphabetically first ticker = A) with the lowest summed squared distance; freeze bases and the spread's mean/std. During t+1 .. next boundary: z = (A/baseA - B/baseB - mean) / std; entry z < -z, exit z >= 0 or z <= -4; forced exit at the next boundary (end of the trading period). Equal dollars.
 - **Fills:** decided at bar t's close, both legs filled at the next synchronized open (both need a bar).
 - **Protective exits (OR):** per-leg hard stop leg_stop_pct (long below, short above its entry fill;
   a stop forces the other leg out); net pair P&L incl. fees and borrow <= -pair_stop_pct % of entry
@@ -45,7 +45,7 @@ Source: `original.md` (library spec), EXECUTION.md "Pair execution" / INDICATORS
 | `max_candles` | {"min": 10, "max": 80, "step": 5, "hard_min": 2, "hard_max": 252} |
 
 ## Assumptions
-- six-month boundaries = last bar of June and December; formation = the f bars before the boundary bar; trading window = next bar up to the next boundary, where an open pair is closed. All 6 pairs of CL, KO, PEP, PG compete; alphabetically first ticker is A.
+- six-month boundaries = last bar of June and December; formation = the f bars ending with the boundary bar (data completed before the January/July open, INDICATORS.md); trading window = first January/July bar up to the next boundary bar, whose close submits the expiry exit for the next open; no new pair on that last session. All 6 pairs of CL, KO, PEP, PG compete; alphabetically first ticker is A.
 - BORROW COST ASSUMED (user decision 2026-11-27): the spec says to disable pairs without historical borrow/carry data; there is none, so the short leg pays a constant labelled fee (CONFIG borrow_fee_pct_yr: 0.25 %/yr for these easy-to-borrow ETFs/large caps, 3 %/yr for crypto margin) on its market value per calendar day; stress runs at higher fees are logged after the optimization. Borrow recalls and margin calls are not modelled.
 - short proceeds earn 0 % and the long leg is paid from the sleeve (no margin interest): conservative carry; total-return (adjusted) closes on both legs, so the short leg pays the dividends it is short (dividend-in-lieu).
 - gross notional G = 100 % of sleeve equity at entry (equal dollars: G/2 each; ratio 1:beta: long G/(1+beta), short beta*G/(1+beta)); quantities frozen at entry.

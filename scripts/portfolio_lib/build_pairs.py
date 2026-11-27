@@ -110,7 +110,8 @@ SPECS = {
         ['"formation": {"min": 126, "max": 300, "step": 21, "hard_min": 42, "hard_max": 504},',
          '"z": {"min": 1.0, "max": 3.0, "step": 0.25, "hard_min": 0.25, "hard_max": 3.75},'],
         'p["formation"] >= 20 and 0 < p["z"] < 4',
-        '''    """At each six-month boundary t (last bar of June / December): on t-f..t-1, normalize every
+        '''    """At each six-month boundary t (last bar of June / December): on t-f+1..t (data completed before
+    the first January/July open, INDICATORS.md six-month windows), normalize every
     candidate's total-return close to 1 at the formation start and pick the pair (alphabetically first
     ticker = A) with the lowest summed squared distance; freeze bases and the spread's mean/std.
     During t+1 .. next boundary: z = (A/baseA - B/baseB - mean) / std; entry z < -z, exit z >= 0 or
@@ -127,9 +128,9 @@ SPECS = {
     for k, t in enumerate(bnd):
         end = bnd[k + 1] if k + 1 < len(bnd) else N - 1
         force[end] = True
-        if t - f < 0:
+        if t - f + 1 < 0:
             continue
-        W = C[t - f:t]
+        W = C[t - f + 1:t + 1]
         best = None
         for i in range(K):
             for j in range(i + 1, K):
