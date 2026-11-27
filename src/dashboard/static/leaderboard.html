@@ -10,7 +10,7 @@
   <link rel="preload" href="/static/vendor/fonts/inter-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/vendor/fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/tokens.css?v=1">
-  <link rel="stylesheet" href="/static/leaderboard.css?v=2">
+  <link rel="stylesheet" href="/static/leaderboard.css?v=3">
   <script src="/static/theme.js?v=1"></script>
 </head>
 <body>
@@ -46,9 +46,12 @@
 
     <main id="main">
       <div class="title-row">
+        <span class="ghost-word" aria-hidden="true">Rank</span>
         <div>
-          <h1>Strategy leaderboard</h1>
+          <p class="eyebrow"><span class="n">03</span><span class="dash"></span>Strategy leaderboard</p>
+          <h1>Leaderboard.</h1>
           <p class="lede" id="lede">Every saved variant of the strategy library, ranked by the worse of its in-sample and out-of-sample yearly return.</p>
+          <p class="pill warn backtest-note"><span class="dot"></span>Backtests only. No orders are placed from this page.</p>
         </div>
       </div>
 
@@ -142,9 +145,12 @@
       </section>
     </main>
 
-    <footer class="credits" id="credits">%/yr is the lower of the in-sample and out-of-sample yearly return; worst DD is the deeper of their two maximum drawdowns. Every backtest puts 100% of equity into each position and pays trading costs. Backtest results don't guarantee future returns: paper trading is the real test.</footer>
+    <footer class="site-foot">
+      <p class="big" aria-hidden="true">Backtests.<span>Paper first.</span></p>
+      <p class="credits" id="credits">%/yr is the lower of the in-sample and out-of-sample yearly return; worst DD is the deeper of their two maximum drawdowns. Every backtest puts 100% of equity into each position and pays trading costs. Backtest results don't guarantee future returns: paper trading is the real test.</p>
+    </footer>
   </div>
 
-  <script src="/static/leaderboard.js?v=1"></script>
+  <script src="/static/leaderboard.js?v=2"></script>
 </body>
 </html>

@@ -17,6 +17,8 @@ const state = {
 };
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+/* a formatted value as an Anton figure, the unit small in the accent: "36.8%" -> 36.8 % */
+const fig = (str, unit = "%") => str === "–" ? '<span class="fig">–</span>' : `<span class="fig">${esc(str.replace(/%$/, ""))}<small>${unit}</small></span>`;
 const pct = (v, d = 1) => (v == null || Number.isNaN(v) ? "–" : `${v.toFixed(d)}%`);
 const signed = (v, d = 1) => (v == null ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(d)}%`);
 const human = (s) => { const t = String(s).replace(/_/g, " "); return t.charAt(0).toUpperCase() + t.slice(1); };
@@ -108,7 +110,7 @@ function kpis() {
   const low = state.all.filter((e) => e.low_confidence).length;
   $("#kpis").innerHTML = `
     <div class="kpi lead"><div class="k">Top conservative return</div>
-      <div class="v up">${pct(top.conservative_yearly_pct)}<small>a year</small></div>
+      <div class="v up">${fig(pct(top.conservative_yearly_pct))}<small class="per">a year</small></div>
       <button class="s" data-id="${top.id}">${esc(top.name)} · ${esc(top.label)} · DD ${pct(top.worst_max_dd_pct)}</button></div>
     <div class="kpi"><div class="k">At 5%/yr or more</div><div class="v">${above}</div><div class="s">${tame} with DD under 25%</div></div>
     <div class="kpi"><div class="k">On the frontier</div><div class="v">${state.front.size}</div><div class="s">unbeaten on both axes</div></div>
@@ -247,8 +249,8 @@ function select(e, push = true) {
     <div><p class="d-name">${esc(e.name)}</p><p class="d-set">${esc(e.label)} · ${PROFILES[e.profile] || esc(e.profile)}</p></div>
     ${e.low_confidence ? `<p class="warn">Low confidence: this symbol topped a screen whose ranking didn't hold up in-sample, so it may have been picked by luck. The strategy's broad basket is the safer read.</p>` : ""}
     <div class="d-figs">
-      <div><div class="v up">${pct(e.conservative_yearly_pct)}</div><div class="k">a year, worse period</div></div>
-      <div><div class="v down">${pct(e.worst_max_dd_pct)}</div><div class="k">worst drawdown</div></div>
+      <div class="d-main"><div class="v up">${fig(pct(e.conservative_yearly_pct))}</div><div class="k">a year, worse period</div></div>
+      <div><div class="v down">${fig(pct(e.worst_max_dd_pct))}</div><div class="k">worst drawdown</div></div>
     </div>
     <div class="d-bars">${b("In-sample", e.is_yearly_pct)}${b("Out-of-sample", e.oos_yearly_pct)}${b("Largest loss", e.largest_loss_pct)}</div>
     <dl class="facts">
