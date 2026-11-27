@@ -928,6 +928,8 @@ const portfolioView = {
 window.portfolioView = portfolioView;
 
 /* ================================================================ DATA === */
+/* storage segments: shades of the accent, or the warn / down colour once the budget runs short */
+const segColor = (i, pct) => `color-mix(in srgb, ${pct >= 95 ? "var(--down)" : pct >= 80 ? "var(--warn)" : "var(--accent)"} ${Math.max(28, 100 - i * 14)}%, var(--night-3))`;
 function storagePanel(h, mb) {
   const u = h.storage, ar = h.archive || {};
   if (!u) return "";
@@ -937,15 +939,16 @@ function storagePanel(h, mb) {
   return `<section class="panel mb">
     <div class="panel-head"><h2>Storage budget</h2><span class="sub">${gb(u.total)} of ${gb(u.budget)} · ${gb(u.disk_free)} free on disk</span></div>
     <div class="storage">
-      <div class="meter"><div style="width:${Math.max(0.5, Math.min(100, pct)).toFixed(1)}%;background:${pct >= 95 ? "var(--negative)" : pct >= 80 ? "var(--warning, #d6a64a)" : "var(--accent)"}"></div></div>
-      <div class="stats">${ds.map(([k, v]) => `<div class="stat"><div class="k">${esc(k)}</div><div class="v num">${gb(v)}</div></div>`).join("")}</div>
+      <div class="meter" role="img" aria-label="${gb(u.total)} of ${gb(u.budget)} used">${ds.map(([, v], i) => `<span style="width:${Math.max(0.4, (v / u.budget) * 100).toFixed(2)}%;background:${segColor(i, pct)}"></span>`).join("")}</div>
+      <div class="stats">${ds.map(([k, v], i) => `<div class="stat"><div class="k"><span class="swatch" style="background:${segColor(i, pct)}"></span>${esc(k)}</div><div class="v num">${gb(v)}</div></div>`).join("")}</div>
       <p class="note">Archive: 1 m candles for <b>${ar.klines_pairs ?? "—"}</b> USDT pairs (incl. delisted) · every trade for <b>${ar.trades_pairs ?? "—"}</b> coins (${ar.trades_files ?? 0} files) · best bid/ask recorded on <b>${days.length}</b> day(s)${days.length ? ` since ${esc(days[0])}` : ""}. Book ticks are a rolling window capped at ${gb(u.book_max)}; backfills stop at 95 % of the budget.</p>
     </div></section>`;
 }
 
 const dataView = {
   async mount(el) {
-    el.innerHTML = `<div class="title-row"><div><h1>Data health</h1><p class="lede">Scanning the Parquet store… (cached for 10 min, the first scan takes about 10 s)</p></div></div>`;
+    this.shown = false;
+    el.innerHTML = pageHead("data", "Scanning the Parquet store… (cached for 10 min, the first scan takes about 10 s)");
     el.addEventListener("click", (e) => { const r = e.target.closest("tr[data-sym]"); if (r) go(r.dataset.sym); });
     el.addEventListener("keydown", (e) => { const r = e.target.closest("tr[data-sym]"); if (r && e.key === "Enter") go(r.dataset.sym); });
     await this.tick(el);
@@ -955,7 +958,7 @@ const dataView = {
     try { h = await api("/api/health"); }
     catch (e) {
       if (state.view !== this) return;
-      el.innerHTML = `<div class="title-row"><div><h1>Data health</h1></div></div><div class="panel">${errorBlock("data health", "dataView.tick(document.getElementById('app'))")}</div>`;
+      el.innerHTML = `${pageHead("data")}<div class="panel">${errorBlock("data health", "dataView.tick(document.getElementById('app'))")}</div>`;
       return;
     }
     if (state.view !== this) return;
@@ -969,14 +972,20 @@ const dataView = {
     const fresh = fd.generated && Date.now() / 1000 - fd.generated < 3 * (fd.poll_seconds || 30);
     const srcOk = srcs.filter(([, v]) => !v.error && v.last_ok && Date.now() / 1000 - v.last_ok < 600);
     const nQuotes = state.assets.filter((a) => a.fetched && Date.now() / 1000 - a.fetched < 120).length;
-    const lede = [
-      feeds.length ? `<b>${live.length} of ${feeds.length}</b> live crypto feeds under 5 min behind${stale.length ? `; behind: ${stale.map((r) => esc(base(r.symbol))).join(", ")}` : ""}` : "No live feeds found",
-      yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${yr.failed.length > 8 ? yr.failed.length + " symbols" : esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run",
-      fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k, v]) => `${esc(k)} ${v.error ? '<span class="down">error</span>' : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>',
-      `store scanned ${ago(h.generated)}`,
-    ].join(" · ");
+    /* the status sentence, each clause as a pill coloured by its state: ok, warn or error */
+    const srcErr = srcs.some(([, v]) => v.error);
+    const parts = [
+      [feeds.length ? `<b>${live.length} of ${feeds.length}</b> live crypto feeds under 5 min behind${stale.length ? `; behind: ${stale.map((r) => esc(base(r.symbol))).join(", ")}` : ""}` : "No live feeds found", !feeds.length ? "neg" : stale.length ? "warn" : "pos"],
+      [yr ? `Yahoo 1 m collector ${yOk ? "ran fine" : `<span class="down">failed for ${yr.failed.length > 8 ? yr.failed.length + " symbols" : esc(yr.failed.join(", "))}</span>`} ${ago(Date.parse(yr.time) / 1000)}` : "Yahoo 1 m collector has never run", !yr ? "warn" : yOk ? "pos" : "neg"],
+      [fd.generated ? `quote poller ${fresh ? "running" : '<span class="down">stalled</span>'}, last poll ${ago(fd.generated)} (${srcs.map(([k, v]) => `${esc(k)} ${v.error ? '<span class="down">error</span>' : "ok"}`).join(", ")})` : '<span class="down">quote poller has not written yet</span>', !fd.generated || !fresh || srcErr ? "neg" : "pos"],
+      [`store scanned ${ago(h.generated)}`, "neutral"],
+    ];
+    const lede = parts.map(([t, k], i) => `<span class="pill status ${k}"><span class="dot"></span><span>${t}${i === parts.length - 1 ? "." : ""}</span></span>`).join('<span class="sr"> · </span>');
+    // the reveal plays on the first render only; the 15 s re-render must not replay it
+    el.classList.toggle("rise", !this.shown); this.shown = true;
     el.innerHTML = `
-      <div class="title-row"><div><h1>Data health</h1><p class="lede">${lede}.</p></div></div>
+      ${pageHead("data")}
+      <div class="status-line mb" role="status">${lede}</div>
       <section class="panel kpis four" aria-label="Store totals">
         <div class="kpi"><div class="k">Rows stored</div><div class="v num">${rows.toLocaleString("en-US")}</div><div class="s">${h.rows.length} datasets</div></div>
         <div class="kpi"><div class="k">Size on disk</div><div class="v num">${mb(size)}</div><div class="s">Parquet, local</div></div>
@@ -991,7 +1000,7 @@ const dataView = {
           <td class="l muted">${esc(r.dataset)}</td><td class="num">${r.first ? fmtDate(r.first) : "—"}</td>
           <td class="num">${r.last ? (r.dataset.endsWith(" 1d") ? fmtDate(r.last) : fmtDateTime(r.last)) : "—"}</td>
           <td class="num">${(r.rows || 0).toLocaleString("en-US")}</td><td class="num">${r.gaps ?? '<span class="muted">—</span>'}</td><td class="num">${r.missing != null ? r.missing.toLocaleString("en-US") : '<span class="muted">—</span>'}</td>
-          <td class="l">${r.lag_min != null ? `<span class="pill ${r.lag_min < 5 ? "pos" : "neg"}">${r.lag_min < 5 ? "Live" : Math.round(r.lag_min) + " min behind"}</span>` : `<span class="muted">${r.last ? ago(r.last) : "—"}</span>`}</td>
+          <td class="l">${r.lag_min != null ? `<span class="pill ${r.lag_min < 5 ? "pos live" : "neg"}"><span class="dot"></span>${r.lag_min < 5 ? "Live" : Math.round(r.lag_min) + " min behind"}</span>` : `<span class="muted">${r.last ? ago(r.last) : "—"}</span>`}</td>
           <td class="num muted">${r.size ? mb(r.size) : "—"}</td></tr>`).join("")}</tbody></table></div>
         <div class="note">Crypto gaps are counted around the clock and are mostly real exchange outages, such as Binance maintenance. ETF 1 m gaps are counted within each session; thin tickers like CSSPX.SW only have bars in minutes with trades.</div>
       </section>`;
