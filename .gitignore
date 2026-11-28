@@ -9,3 +9,6 @@ __pycache__/
 # EURUSD market data for the legacy eurusd_breakout_bl study (rebuilt by prep_data.py)
 strategies/eurusd_breakout_bl/data/
 /.taste-skill/
+
+# EURUSD 15m bars for strategies/AMD (copied from strategies/eurusd_breakout_bl/data, histdata.com)
+strategies/AMD/data/
