@@ -28,6 +28,7 @@ from src.brokers.market import DataError
 log = logging.getLogger("brokers.engine")
 ROOT = Path(__file__).resolve().parents[2]
 HISTORY_TTL = 6 * 3600          # reload the stored history this often (collectors keep it fresh)
+FX_STORE = ROOT / "data" / "brokers" / "fx"   # closed live FX bars the bots fetched (no FX collector exists)
 _seq = itertools.count()
 
 
@@ -46,7 +47,7 @@ class Strategy:
         # so for those the bot sizes like each backtest period starts: position_pct / N per position.
         self.per_symbol = not hasattr(mod, "_simulate_portfolio")
         self.slot = float(mod.CONFIG.get("position_pct", 1.0)) / len(self.symbols)
-        if self.timeframe not in ("1d", "4h", "1h"):
+        if self.timeframe not in ("1d", "4h", "1h", "15min"):
             raise ValueError(f"{name}: timeframe {self.timeframe} not supported by the live bots")
         self.hist: dict[str, pd.DataFrame] = {}
         self.extra: dict[str, pd.DataFrame] = {}   # symbols the strategy loads besides its own (e.g. ^IRX)
@@ -69,10 +70,36 @@ class Strategy:
                     fn.cache_clear()
         except Exception:  # noqa: BLE001
             pass
-        hist = {s: mod.load_bars(self.asset_class, s, self.timeframe) for s in self.symbols}
+        hist = {s: self._with_fx_store(s, mod.load_bars(self.asset_class, s, self.timeframe)) for s in self.symbols}
         self.hist, self.extra, self.hist_at = hist, {}, time.time()
         log.info("%s: history loaded, %s", self.name,
                  ", ".join(f"{s} to {df.index[-1]:%Y-%m-%d %H:%M}" for s, df in list(hist.items())[:4]))
+
+    # ----------------------------------------------------------- FX pairs ---
+    # FX pairs (market.FX_PAIRS) have no collector: the strategy's own file history ends at setup.
+    # Every closed bar a bot fetches from Yahoo is appended to data/brokers/fx/<SYM>_<tf>.parquet,
+    # so the history stays gap-free as long as the bot runs at least once every ~60 days.
+    def _fx_store(self, sym: str):
+        return FX_STORE / f"{sym}_{self.timeframe}.parquet"
+
+    def _with_fx_store(self, sym: str, h: pd.DataFrame) -> pd.DataFrame:
+        p = self._fx_store(sym)
+        if sym not in market.FX_PAIRS or not p.exists():
+            return h
+        st = pd.read_parquet(p)
+        return pd.concat([h[h.index < st.index[0]], st]) if len(st) else h
+
+    def _save_fx_store(self, sym: str, joined: pd.DataFrame) -> None:
+        closed = joined.iloc[:-1]                       # the last bar is still forming
+        p = self._fx_store(sym)
+        old = pd.read_parquet(p) if p.exists() else closed.iloc[:0]
+        after = old.index[-1] if len(old) else self._file_end[sym]
+        new = closed[closed.index > after]
+        if len(new):
+            p.parent.mkdir(parents=True, exist_ok=True)
+            tmp = p.with_suffix(".tmp")
+            pd.concat([old, new]).to_parquet(tmp)
+            tmp.replace(p)
 
     def _extra_bars(self, asset_class: str, symbol: str, timeframe: str) -> pd.DataFrame:
         key = f"{asset_class}:{symbol}:{timeframe}"
@@ -85,8 +112,23 @@ class Strategy:
         if time.time() - self.hist_at > HISTORY_TTL or not self.hist:
             self._refresh_history()
         bars = {}
+        fx = [s for s in self.symbols if s in market.FX_PAIRS]
+        if fx and not hasattr(self, "_file_end"):
+            mod = self._fresh()
+            self._file_end = {s: mod.load_bars(self.asset_class, s, self.timeframe).index[-1] for s in fx}
+        for s in fx:
+            h = self.hist[s]
+            tail = market.fx_bars(s, self.timeframe, "5d")
+            if h.index[-1] < tail.index[0]:
+                tail = market.fx_bars(s, self.timeframe, "60d")
+                if h.index[-1] < tail.index[0]:
+                    raise DataError(f"{s}: stored history ends {h.index[-1]}, Yahoo bars start {tail.index[0]}")
+            bars[s] = pd.concat([h[h.index < tail.index[0]], tail])
+            self._save_fx_store(s, bars[s])
         if self.asset_class == "crypto":
             for s in self.symbols:
+                if s in fx:
+                    continue
                 h = self.hist[s]
                 tail = market.crypto_bars(s, self.timeframe, 60)
                 if h.index[-1] < tail.index[0]:
@@ -112,7 +154,8 @@ class Strategy:
 
     # ------------------------------------------------------------- signals ---
     def targets(self) -> tuple[dict[str, dict], dict[str, dict]]:
-        """({symbol: {weight, sim_entry, sim_entry_price}}, {symbol: its last closed simulated trade}).
+        """({symbol: {weight, side, sim_entry, sim_entry_price}}, {symbol: its last closed simulated trade}).
+        side is "long" or "short" (strategies whose trades carry a "side" field, e.g. AMD).
         Also keeps self.sim_closed (every closed simulated trade, for the journal's shadow record)."""
         mod = self._fresh()
         bars = self.bars
@@ -133,12 +176,14 @@ class Strategy:
             if t["exit_reason"] == "end":
                 px = float(bars[t["symbol"]]["close"].iloc[-1])
                 w = self.slot if self.per_symbol else max(0.0, t["qty"] * px / eq)
-                out[t["symbol"]] = {"weight": min(1.0, w), "sim_entry": str(t["entry_time"]),
+                out[t["symbol"]] = {"weight": min(1.0, w), "side": t.get("side", "long"), "sim_entry": str(t["entry_time"]),
                                     "sim_entry_price": float(t["entry_price"])}
             else:
                 c = {"symbol": t["symbol"], "entry_time": str(t["entry_time"]), "exit_time": str(t["exit_time"]),
                      "entry_price": float(t["entry_price"]), "exit_price": float(t["exit_price"]),
-                     "reason": t["exit_reason"], "pnl_pct": (float(t["exit_price"]) / float(t["entry_price"]) - 1) * 100}
+                     "reason": t["exit_reason"], "side": t.get("side", "long"),
+                     "pnl_pct": (float(t["exit_price"]) / float(t["entry_price"]) - 1) * 100
+                     * (-1 if t.get("side") == "short" else 1)}
                 last_exit[t["symbol"]] = c
                 closed.append(c)
         self.sim_closed = closed

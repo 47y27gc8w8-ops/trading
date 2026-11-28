@@ -12,6 +12,10 @@ Cycle (every 60 s for crypto, every 120 s for ETFs while NYSE is open):
   4. write equity + heartbeat.
 ETF bots idle outside NYSE hours (no data calls; equity is still recorded every minute).
 Every decision is also written to the structured journal (src/brokers/journal.py) for later analysis.
+Shorts (strategies whose simulated trades carry side="short", e.g. AMD on EURUSD): a "short" fill
+credits the net proceeds and stores a negative qty and a negative cost, a "cover" fill buys it back;
+equity = cash + qty x price, so a short is fully cash-collateralized (no leverage). A bot entry in
+config/brokers.yaml may override fee_pct / slippage_pct (e.g. FX costs ~1 pip, not crypto 0.15 %).
 A failing data source is retried with backoff (market.retry), then the cycle is skipped and
 the next one waits longer (up to 15 min); the process never exits because of a data error.
 """
@@ -57,8 +61,8 @@ class Bot:
         self.id = bot["id"]
         self.cfg, self.bot = cfg, bot
         self.log = setup_logging(self.id)
-        self.fee = float(cfg.get("fee_pct", 0.10)) / 100
-        self.slip = float(cfg.get("slippage_pct", 0.05)) / 100
+        self.fee = float(bot.get("fee_pct", cfg.get("fee_pct", 0.10))) / 100
+        self.slip = float(bot.get("slippage_pct", cfg.get("slippage_pct", 0.05))) / 100
         self.start_balance = float(cfg.get("start_balance_chf", 10_000))
         self.strategy = Strategy(bot["strategy"], bot.get("params") or {}, bot["symbols"])
         self.crypto = self.strategy.asset_class == "crypto"
@@ -172,8 +176,9 @@ class Bot:
     # --------------------------------------------------------------- fills ---
     def fill(self, symbol: str, side: str, qty: float, ref_px: float, reason: str, sim_entry: str | None = None,
              sim_price: float | None = None, sim_time: str | None = None, adopt: bool = False) -> None:
-        """Simulated fill: price moves against us by the slippage, fee on the notional, all in CHF."""
-        px = ref_px * (1 + self.slip) if side == "buy" else ref_px * (1 - self.slip)
+        """Simulated fill: price moves against us by the slippage, fee on the notional, all in CHF.
+        side: buy / sell (long) or short / cover (short; qty is always positive here)."""
+        px = ref_px * (1 + self.slip) if side in ("buy", "cover") else ref_px * (1 - self.slip)
         notional = qty * px * self.fx
         fee = notional * self.fee
         pos = self.positions().get(symbol)
@@ -192,6 +197,21 @@ class Bot:
                     self.con.execute("INSERT INTO positions(bot_id, symbol, qty, avg_price_usd, cost, sim_entry, opened_at,"
                                      " last_price_usd) VALUES (?,?,?,?,?,?,?,?)",
                                      (self.id, symbol, qty, px, notional + fee, sim_entry, now, ref_px))
+            elif side == "short":
+                self.con.execute("UPDATE state SET cash = cash + ? WHERE bot_id=?", (notional - fee, self.id))
+                self.con.execute("INSERT INTO positions(bot_id, symbol, qty, avg_price_usd, cost, sim_entry, opened_at,"
+                                 " last_price_usd) VALUES (?,?,?,?,?,?,?,?)",
+                                 (self.id, symbol, -qty, px, -(notional - fee), sim_entry, now, ref_px))
+            elif side == "cover":
+                frac = min(1.0, qty / abs(pos["qty"]))
+                cost_part = pos["cost"] * frac               # negative: the net proceeds of the short sale
+                pnl = -cost_part - notional - fee
+                self.con.execute("UPDATE state SET cash = cash - ? WHERE bot_id=?", (notional + fee, self.id))
+                if frac >= 0.999999:
+                    self.con.execute("DELETE FROM positions WHERE bot_id=? AND symbol=?", (self.id, symbol))
+                else:
+                    self.con.execute("UPDATE positions SET qty=qty+?, cost=cost-?, last_price_usd=? WHERE bot_id=? AND symbol=?",
+                                     (qty, cost_part, ref_px, self.id, symbol))
             else:
                 frac = min(1.0, qty / pos["qty"])
                 cost_part = pos["cost"] * frac
@@ -207,7 +227,7 @@ class Bot:
                                    (self.id, now, symbol, side, qty, px, ref_px, self.fx, notional, fee, pnl, reason))
         shortfall = delay = None
         if sim_price:
-            shortfall = ((px / sim_price - 1) if side == "buy" else (sim_price / px - 1)) * 1e4
+            shortfall = ((px / sim_price - 1) if side in ("buy", "cover") else (sim_price / px - 1)) * 1e4
         if sim_time:
             try:
                 delay = (datetime.now(timezone.utc) - datetime.fromisoformat(sim_time)).total_seconds()
@@ -257,7 +277,7 @@ class Bot:
                             if c["symbol"] == s and c["entry_time"] == p["sim_entry"]), None)
                 why = (sim or last_exit.get(s) or {}).get("reason", "signal") if s not in targets \
                     else "strategy re-entered / re-weighted"
-                self.fill(s, "sell", p["qty"], prices[s], f"exit: {why}",
+                self.fill(s, "cover" if p["qty"] < 0 else "sell", abs(p["qty"]), prices[s], f"exit: {why}",
                           sim_price=sim["exit_price"] if sim else None, sim_time=sim["exit_time"] if sim else None)
         # 2. entries at the strategy's weight of the bot's equity
         eq = self.equity(prices)
@@ -270,9 +290,11 @@ class Bot:
             if want < MIN_TRADE_CHF:
                 continue
             ref = prices[s]
-            qty = want / (ref * (1 + self.slip) * self.fx)
+            short = t.get("side") == "short"
+            qty = want / (ref * ((1 - self.slip) if short else (1 + self.slip)) * self.fx)
             since = t["sim_entry"][:16]
-            self.fill(s, "buy", qty, ref, f"{'adopt' if first else 'entry'}: strategy long since {since} UTC, "
+            self.fill(s, "short" if short else "buy", qty, ref,
+                      f"{'adopt' if first else 'entry'}: strategy {'short' if short else 'long'} since {since} UTC, "
                                          f"weight {t['weight']:.1%}", t["sim_entry"],
                       sim_price=t.get("sim_entry_price"), sim_time=t["sim_entry"], adopt=first)
 

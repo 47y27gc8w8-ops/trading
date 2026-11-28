@@ -4,6 +4,7 @@
   The kline volume used is the quote volume, matching the project's 1m history.
 - ETFs/stocks: Yahoo Finance daily bars through yfinance (dividend/split adjusted).
 - FX: USDCHF=X from Yahoo. USDT is treated as USD.
+- FX pairs traded by a bot (FX_PAIRS, e.g. EURUSD): Yahoo intraday bars (e.g. EURUSD=X 15m), incl. the forming bar.
 - NYSE regular hours with the exchange's holidays and early closes.
 
 Each returned frame includes the bar that is still forming, so the strategy's own simulation
@@ -62,7 +63,7 @@ def _exchange():
     return _EX
 
 
-_TF = {"1d": "1d", "1D": "1d", "4h": "4h", "1h": "1h"}
+_TF = {"1d": "1d", "1D": "1d", "4h": "4h", "1h": "1h", "15min": "15m"}
 
 
 def crypto_bars(symbol: str, timeframe: str, limit: int = 60) -> pd.DataFrame:
@@ -108,6 +109,32 @@ def yahoo_daily(symbols: list[str], period: str = "1mo") -> dict[str, pd.DataFra
     if missing:
         raise DataError(f"yahoo: no data for {sorted(missing)}")
     return out
+
+
+FX_PAIRS = {"EURUSD": "EURUSD=X"}   # symbols a bot may trade as spot FX (priced in USD)
+_YTF = {"15min": "15m", "1h": "60m"}
+
+
+def fx_bars(symbol: str, timeframe: str, period: str = "5d") -> pd.DataFrame:
+    """Intraday FX bars from Yahoo (UTC, labelled by bar start) incl. the forming bar; volume 0.
+    period up to "60d" for 15-minute bars (Yahoo's limit), used to close a gap to stored history."""
+    import yfinance as yf
+
+    ticker, interval = FX_PAIRS[symbol], _YTF[timeframe]
+
+    def get():
+        h = yf.Ticker(ticker).history(period=period, interval=interval, auto_adjust=False)
+        if h is None or h.empty:
+            raise DataError(f"yahoo returned no {interval} bars for {ticker}")
+        return h
+
+    h = retry(get, f"yahoo {ticker} {interval}")
+    df = h.rename(columns=str.lower)[["open", "high", "low", "close"]].dropna().astype(float)
+    df = df[(df["high"] >= df["low"]) & (df["close"] > 0)]
+    df.index = pd.DatetimeIndex(df.index).tz_convert("UTC")
+    df.index.name = "date"
+    df["volume"] = 0.0
+    return df
 
 
 def usdchf() -> float:
